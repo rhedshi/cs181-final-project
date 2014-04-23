@@ -19,5 +19,5 @@ def pickle(array, file):
 	cPickle.dump(array,fo)
 	fo.close()
 
-def csv_to_np_array(file):
+def csv_to_ndarray(file):
 	return np.genfromtxt(file, delimiter=" ", names=None)
