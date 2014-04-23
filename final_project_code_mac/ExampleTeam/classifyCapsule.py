@@ -1,7 +1,10 @@
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
+import pylab as pl
+from mpl_toolkits.mplot3d import Axes3D
 import observedState as state
+import utils
 
 def isGood(sample):
     "returns True if the sample capsule is a non-placebo"
@@ -20,9 +23,9 @@ def k_means(sample, goodSample=state.getGoodCapsuleExamples(),
         est = KMeans(n_clusters)
         est.fit(data)
         centers = est.cluster_centers_
-        pickle(est, 'data/capsule_k_means')
+        utils.pickle(est, 'data/capsule_k_means')
     else:
-        est = unpickle('data/capsule_k_means')
+        est = utils.unpickle('data/capsule_k_means')
 
     numMatch = 0.0
     numGood = goodSample.shape[0]
@@ -33,18 +36,26 @@ def k_means(sample, goodSample=state.getGoodCapsuleExamples(),
         if est.predict(goodSample[i]) == sampleLabel:
             numMatch += 1
 
+    if plot==True:
+        fig = pl.figure()
+        pl.clf()
+        ax = Axes3D(fig)
+        labels = est.labels_
+        ax.scatter(data[:,0],data[:,1],data[:,2],c=labels.astype(np.float))
+        pl.show()
+
     return float(numMatch) / numGood
 
 def gaussMixture(sample, goodSample=state.getGoodCapsuleExamples(),
-                 data=None, train=True):
+                 data=None, train=True, plot=False):
     if train==True:
         n_classes = 3
         covar_type = 'full'
         classifier = GMM(n_components=n_classes, covariance_type=covar_type)
         classifier.fit(data)
-        pickle(classifier, 'data/capsule_gauss')
+        utils.pickle(classifier, 'data/capsule_gauss')
     else:
-        classifier = unpickle('data/capsule_gauss')
+        utils.classifier = unpickle('data/capsule_gauss')
 
     numMatch = 0.0
     numGood = goodSample.shape[0]
@@ -53,6 +64,14 @@ def gaussMixture(sample, goodSample=state.getGoodCapsuleExamples(),
     for i in range(numGood):
         if classifier.predict(goodSample[i]) == sampleLabel:
             numMatch += 1
+
+    if plot==True:
+        fig = pl.figure()
+        pl.clf()
+        ax = Axes3D(fig)
+        labels = est.predict(data)
+        ax.scatter(data[:,0],data[:,1],data[:,2],c=labels.astype(np.float))
+        pl.show()
 
     return float(numMatch) / numGood
 
@@ -65,21 +84,3 @@ def gaussMixture(sample, goodSample=state.getGoodCapsuleExamples(),
 def dist(pt1, pt2):
     return np.linalg.norm(pt1 - pt2)"""
 
-def unpickle(file):
-    """Loads and returns a pickled data structure in the given `file` name
-    Example usage:
-        data = unpickle('output/U_20_std')
-    """
-    fo = open(file, 'rb')
-    data = cPickle.load(fo)
-    fo.close()
-    return data
-
-def pickle(data, file):
-    """Dumps data to a file
-    Example usage:
-        pickle(U, 'output/U_20_std')
-    """
-    fo = open(file,'wb')
-    cPickle.dump(data,fo)
-    fo.close()
