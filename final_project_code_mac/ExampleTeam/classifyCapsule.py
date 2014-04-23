@@ -3,7 +3,7 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
 import pylab as pl
 from mpl_toolkits.mplot3d import Axes3D
-import observedState as state
+#import observedState as state
 import utils
 
 def isGood(sample):
@@ -16,7 +16,7 @@ def isGood(sample):
 
     return False
 
-def k_means(sample, goodSample=state.getGoodCapsuleExamples(),
+def k_means(testData, goodSample,
             data=None, train=True, plot=False):
     if train==True:
         n_clusters = 3
@@ -31,9 +31,9 @@ def k_means(sample, goodSample=state.getGoodCapsuleExamples(),
     numGood = goodSample.shape[0]
 
     #sampleLabel = clusterLabel(centers, sample)
-    sampleLabel = est.predict(sample)
+    testLabel = est.predict(testData)
     for i in range(numGood):
-        if est.predict(goodSample[i]) == sampleLabel:
+        if est.predict(goodSample[i,:]) == testLabel:
             numMatch += 1
 
     if plot==True:
@@ -46,7 +46,7 @@ def k_means(sample, goodSample=state.getGoodCapsuleExamples(),
 
     return float(numMatch) / numGood
 
-def gaussMixture(sample, goodSample=state.getGoodCapsuleExamples(),
+def gaussMixture(sample, goodSample,
                  data=None, train=True, plot=False):
     if train==True:
         n_classes = 3
@@ -62,7 +62,7 @@ def gaussMixture(sample, goodSample=state.getGoodCapsuleExamples(),
 
     sampleLabel = classifier.predict(sample)
     for i in range(numGood):
-        if classifier.predict(goodSample[i]) == sampleLabel:
+        if classifier.predict(goodSample[i,:]) == sampleLabel:
             numMatch += 1
 
     if plot==True:

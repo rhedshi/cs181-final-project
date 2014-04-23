@@ -1,3 +1,5 @@
+import cPickle
+
 def unpickle(file):
     """Loads and returns a pickled data structure in the given `file` name
     Example usage:
