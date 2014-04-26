@@ -16,7 +16,24 @@ def isGood(sample):
 
     return False
 
-def k_means(testData, goodSample,
+def closest():
+    "returns a tuple, the position of the nearest non-placebo capsule"
+    agent = state.getPacmanState().getPosition()
+    capsules = state.getCapsuleData()
+    goodCapsules = [i for i in capsules if isGood(i)]
+    minCapsule = goodCapsules[0]
+    minDist = dist(goodCapsule[1],agent)
+    for caps in goodCapsules:
+        if dist(caps,agent)<minDist:
+            minDist = dist(caps,agent)
+            minCapsule = caps
+
+    return minCapsule
+
+def dist(p1, p2):
+    return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+
+def k_means(testX, goodSample,
             data=None, train=True, plot=False):
     if train==True:
         n_clusters = 3
@@ -31,7 +48,7 @@ def k_means(testData, goodSample,
     numGood = goodSample.shape[0]
 
     #sampleLabel = clusterLabel(centers, sample)
-    testLabel = est.predict(testData)
+    testLabel = est.predict(testX)
     for i in range(numGood):
         if est.predict(goodSample[i,:]) == testLabel:
             numMatch += 1
@@ -46,7 +63,7 @@ def k_means(testData, goodSample,
 
     return float(numMatch) / numGood
 
-def gaussMixture(testData, goodSample,
+def gaussMixture(testX, goodSample,
                  data=None, train=True, plot=False):
     if train==True:
         n_classes = 3
@@ -60,7 +77,7 @@ def gaussMixture(testData, goodSample,
     numMatch = 0.0
     numGood = goodSample.shape[0]
 
-    testData = np.reshape(testData,(1,testData.size))
+    testData = np.reshape(testX,(1,testX.size))
     predLabel = est.predict(testData)
     for i in range(numGood):
         if est.predict(goodSample[i:i+1,:]) == predLabel:
