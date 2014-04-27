@@ -40,9 +40,9 @@ def k_means(testX, goodSample,
         est = KMeans(n_clusters)
         est.fit(data)
         centers = est.cluster_centers_
-        utils.pickle(est, 'data/capsule_k_means')
+        utils.pickle(est, 'SrcTeam/clusterData/capsule_k_means')
     else:
-        est = utils.unpickle('data/capsule_k_means')
+        est = utils.unpickle('SrcTeam/clusterData/capsule_k_means')
 
     numMatch = 0.0
     numGood = goodSample.shape[0]
@@ -70,9 +70,9 @@ def gaussMixture(testX, goodSample,
         covar_type = 'full'
         est = GMM(n_components=n_classes, covariance_type=covar_type)
         est.fit(data)
-        utils.pickle(classifier, 'data/capsule_gauss')
+        utils.pickle(classifier, 'SrcTeam/clusterData/capsule_gauss')
     else:
-        est = utils.unpickle('data/capsule_gauss')
+        est = utils.unpickle('SrcTeam/clusterData/capsule_gauss')
 
     numMatch = 0.0
     numGood = goodSample.shape[0]
