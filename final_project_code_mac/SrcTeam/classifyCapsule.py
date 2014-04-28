@@ -1,9 +1,10 @@
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
-import pylab as pl
-from mpl_toolkits.mplot3d import Axes3D
-#import observedState as state
+# import pylab as pl
+# from mpl_toolkits.mplot3d import Axes3D
+import observedState as state
+from distanceCalculator import Distancer
 import utils
 
 def isGood(sample):
@@ -11,27 +12,25 @@ def isGood(sample):
 
     goodSamples = state.getGoodCapsuleExamples()
 
-    if(k_means(sample, goodSamples) > 0.5):
+    if(gaussMixture(sample, goodSamples) > 0.5):
         return True
 
     return False
 
-def closest():
+def closest(agent=None):
     "returns a tuple, the position of the nearest non-placebo capsule"
-    agent = state.getPacmanState().getPosition()
+    if agent==None:
+        agent = state.getPacmanPosition()
     capsules = state.getCapsuleData()
-    goodCapsules = [i for i in capsules if isGood(i)]
+    goodCapsules = [i for i in capsules if isGood(i[1])]
     minCapsule = goodCapsules[0]
-    minDist = dist(goodCapsule[1],agent)
+    minDist = Distancer.getDistance(minCapsule[0],agent)
     for caps in goodCapsules:
-        if dist(caps,agent)<minDist:
-            minDist = dist(caps,agent)
+        if dist(caps[1],agent) < minDist:
+            minDist = Distancer.getDistance(caps[1],agent)
             minCapsule = caps
 
-    return minCapsule
-
-def dist(p1, p2):
-    return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+    return minCapsule[0]
 
 def k_means(testX, goodSample,
             data=None, train=True, plot=False):
