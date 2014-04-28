@@ -6,6 +6,7 @@ import numpy as np
 from learners import model_based, model_free, td_value
 import basis
 import classifyCapsule as capsule
+import mapHelper as mapH
 
 class BaseStudentAgent(object):
     """Superclass of agents students will write"""
@@ -109,51 +110,79 @@ class SrcTeamAgent(BaseStudentAgent):
         return self.actions[action_code]
 
 
-class SmartAgent(BaseStudentAgent):
-    """
-    An example TeamAgent. After renaming this agent so it is called <YourTeamName>Agent,
-    (and also renaming it in registerInitialState() below), modify the behavior
-    of this class so it does well in the pacman game!
-    """
-
+class HighRollerAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
-        """
-        arguments given with the -a command line option will be passed here
-        """
+        "arguments given with the -a command line option will be passed here"
         pass # you probably won't need this, but just in case
 
     def registerInitialState(self, gameState):
-        """
-        Do any necessary initialization
-        """
-        super(SrcTeamAgent, self).registerInitialState(gameState)
+        "Do any necessary initialization"
+        super(HighRollerAgent, self).registerInitialState(gameState)
 
     def chooseAction(self, observedState):
         """
-        Here, choose pacman's next action based on the current state of the game.
-        This is where all the action happens.
-
-        This silly pacman agent will move away from the ghost that it is closest
-        to. This is not a very good strategy, and completely ignores the features of
-        the ghosts and the capsules; it is just designed to give you an example.
+        Pacman will chase the scared ghost if present, and the nearest good
+        capsule otherwise. Along the way, he will adjust his path to run into
+        good ghosts.
         """
 
-        pacmanPosition = observedState.getPacmanPosition()
+        pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
         legalActs = [a for a in observedState.getLegalPacmanActions()]
-        ghost_dists = np.array([self.distancer.getDistance(pacmanPosition,gs.getPosition())
+        ghost_dists = np.array([self.distancer.getDistance(pacmanPos,gs.getPosition())
                               for gs in ghost_states])
         # find the closest ghost by sorting the distances
         closest_idx = sorted(zip(range(len(ghost_states)),ghost_dists), key=lambda t: t[1])[0][0]
+
+
+        # closest good capsule to Pacman
+        capsule = capsule.closest()
+        print capsule
+
+
         # take the action that minimizes distance to the current closest ghost
         best_action = Directions.STOP
         best_dist = -np.inf
         for la in legalActs:
             if la == Directions.STOP:
                 continue
-            successor_pos = Actions.getSuccessor(pacmanPosition,la)
+            successor_pos = Actions.getSuccessor(pacmanPos,la)
             new_dist = self.distancer.getDistance(successor_pos,ghost_states[closest_idx].getPosition())
             if new_dist > best_dist:
                 best_action = la
                 best_dist = new_dist
         return best_action
+
+class SafeAgent(BaseStudentAgent):
+    def __init__(self, *args, **kwargs):
+        "arguments given with the -a command line option will be passed here"
+        pass # you probably won't need this, but just in case
+
+    def registerInitialState(self, gameState):
+        "Do any necessary initialization"
+        super(SafeAgent, self).registerInitialState(gameState)
+
+    def chooseAction(self, observedState):
+        """
+        Pacman will eat the nearest good capsule if the ghost is not scared,
+        and eat good ghosts otherwise. Along the way, he will adjust his path to
+        run into good ghosts.
+        """
+
+        pacmanPos = observedState.getPacmanPosition()
+        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
+        legalActs = [a for a in observedState.getLegalPacmanActions()]
+        ghost_dists = np.array([self.distancer.getDistance(pacmanPos,gs.getPosition())
+                              for gs in ghost_states])
+        # find the closest ghost by sorting the distances
+        closest_idx = sorted(zip(range(len(ghost_states)),ghost_dists), key=lambda t: t[1])[0][0]
+        goodGhost = closest_idx
+
+        # position of closest good capsule to Pacman
+        capsule = capsule.closest()
+        print capsule
+
+        if scaredGhostPresent():
+            return mapH.getDirs(pacmanPos, goodGhost)
+        else:
+            return mapH.getDirs(pacmanPos, capsule)
