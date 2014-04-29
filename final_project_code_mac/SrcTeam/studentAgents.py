@@ -7,6 +7,7 @@ from learners import model_based, model_free, td_value
 import basis
 import classifyCapsule as capsule
 import mapHelper as mapH
+import classifyGhosts as ghosts
 
 class BaseStudentAgent(object):
     """Superclass of agents students will write"""
@@ -176,7 +177,8 @@ class SafeAgent(BaseStudentAgent):
                               for gs in ghost_states])
         # find the closest ghost by sorting the distances
         closest_idx = sorted(zip(range(len(ghost_states)),ghost_dists), key=lambda t: t[1])[0][0]
-        goodGhost = closest_idx
+        goodGhost = ghosts.closestGoodGhosts()
+        print goodGhost
 
         # position of closest good capsule to Pacman
         capsule = capsule.closest()
