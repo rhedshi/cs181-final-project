@@ -3,7 +3,7 @@ from sklearn import *
 
 import numpy as np
 
-ghost_data = csv_to_ndarray('example/ghost_train.csv')
+ghost_data = csv_to_ndarray('ghost_train.csv')
 
 ghost_quadrants = ghost_data[:,0]
 ghost_latent_class = ghost_data[:,1]
