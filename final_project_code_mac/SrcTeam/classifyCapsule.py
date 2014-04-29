@@ -1,4 +1,5 @@
 import numpy as np
+import sklearn
 from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
 # import pylab as pl
