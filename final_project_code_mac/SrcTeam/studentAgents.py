@@ -7,7 +7,7 @@ from learners import model_based, model_free, td_value
 import basis
 import classifyCapsule as capsule
 import mapHelper as mapH
-import classifyGhosts as ghosts
+#import classifyGhosts as ghosts
 
 class BaseStudentAgent(object):
     """Superclass of agents students will write"""
@@ -257,3 +257,27 @@ class SafeAgent(BaseStudentAgent):
             return mapH.getDirs(pacmanPos, goodGhost)
         else:
             return mapH.getDirs(pacmanPos, capsule)
+
+class CapsuleAgent(BaseStudentAgent):
+    def __init__(self, *args, **kwargs):
+        "arguments given with the -a command line option will be passed here"
+        pass # you probably won't need this, but just in case
+
+    def registerInitialState(self, gameState):
+        "Do any necessary initialization"
+        super(CapsuleAgent, self).registerInitialState(gameState)
+
+    def chooseAction(self, observedState):
+        "Pacman will eat the nearest good capsule."
+
+        pacmanPos = observedState.getPacmanPosition()
+        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
+        legalActs = [a for a in observedState.getLegalPacmanActions()]
+
+        print pacmanPos
+
+        # position of closest good capsule to Pacman
+        closeCapsule = capsule.closest(observedState)
+        print capsule
+
+        return mapH.getDirs(pacmanPos, capsule)

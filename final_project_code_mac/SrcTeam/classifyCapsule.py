@@ -4,11 +4,10 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
 # import pylab as pl
 # from mpl_toolkits.mplot3d import Axes3D
-from observedState import ObservedState as state
 from distanceCalculator import Distancer
 import utils
 
-def isGood(sample):
+def isGood(state, sample):
     "returns True if the sample capsule is a non-placebo"
 
     goodSamples = state.getGoodCapsuleExamples()
@@ -18,12 +17,12 @@ def isGood(sample):
 
     return False
 
-def closest(agent=None):
+def closest(state, agent=None):
     "returns a tuple, the position of the nearest non-placebo capsule"
     if agent==None:
         agent = state.getPacmanPosition()
     capsules = state.getCapsuleData()
-    goodCapsules = [i for i in capsules if isGood(i[1])]
+    goodCapsules = [i for i in capsules if isGood(state, i[1])]
     minCapsule = goodCapsules[0]
     minDist = Distancer.getDistance(minCapsule[0],agent)
     for caps in goodCapsules:
