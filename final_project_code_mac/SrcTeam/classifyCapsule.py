@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GMM
 # import pylab as pl
 # from mpl_toolkits.mplot3d import Axes3D
-import observedState as state
+from observedState import ObservedState as state
 from distanceCalculator import Distancer
 import utils
 
@@ -70,7 +70,7 @@ def gaussMixture(testX, goodSample,
         covar_type = 'full'
         est = GMM(n_components=n_classes, covariance_type=covar_type)
         est.fit(data)
-        utils.pickle(classifier, 'SrcTeam/clusterData/capsule_gauss')
+        utils.pickle(est, 'SrcTeam/clusterData/capsule_gauss')
     else:
         est = utils.unpickle('SrcTeam/clusterData/capsule_gauss')
 
@@ -93,12 +93,32 @@ def gaussMixture(testX, goodSample,
 
     return float(numMatch) / numGood
 
-"""def clusterLabel(centers, sample):
-    dists = np.zeros(centers.shape[0])
-    for i in range(centers.shape[0]):
-        dists[i] = dist(sample, centers)
-    return argmin
+def gaussMixtureOld(testX, goodSample,
+                 data=None, train=True, plot=False):
+    if train==True:
+        n_classes = 3
+        covar_type = 'full'
+        est = GMM(n_components=n_classes, cvtype=covar_type)
+        est.fit(data)
+        utils.pickle(est, 'SrcTeam/clusterData/capsule_gauss_old')
+    else:
+        est = utils.unpickle('SrcTeam/clusterData/capsule_gauss_old')
 
-def dist(pt1, pt2):
-    return np.linalg.norm(pt1 - pt2)"""
+    numMatch = 0.0
+    numGood = goodSample.shape[0]
 
+    testData = np.reshape(testX,(1,testX.size))
+    predLabel = est.predict(testData)
+    for i in range(numGood):
+        if est.predict(goodSample[i:i+1,:]) == predLabel:
+            numMatch += 1
+
+    if plot==True:
+        fig = pl.figure()
+        pl.clf()
+        ax = Axes3D(fig)
+        labels = est.predict(data)
+        ax.scatter(data[:,0],data[:,1],data[:,2],c=labels.astype(np.float))
+        pl.show()
+
+    return float(numMatch) / numGood
