@@ -17,23 +17,29 @@ def isGood(state, sample):
 
     return False
 
-def closest(state, agent=None):
+def closest(state, distancer, agent=None):
     "returns a tuple, the position of the nearest non-placebo capsule"
+
+    #Get Pacman's position
     if agent==None:
         agent = state.getPacmanPosition()
     capsules = state.getCapsuleData()
+    #Sort out the good capsules
     goodCapsules = [i for i in capsules if isGood(state, i[1])]
+
+
     minCapsule = goodCapsules[0]
-    minDist = Distancer.getDistance(minCapsule[0],agent)
+    minDist = distancer.getDistance(minCapsule[0],agent)
+
     for caps in goodCapsules:
-        if dist(caps[1],agent) < minDist:
-            minDist = Distancer.getDistance(caps[1],agent)
+        if distancer.getDistance(caps[0],agent) < minDist:
+            minDist = distancer.getDistance(caps[0],agent)
             minCapsule = caps
 
     return minCapsule[0]
 
 def k_means(testX, goodSample,
-            data=None, train=True, plot=False):
+            data=None, train=False, plot=False):
     if train==True:
         n_clusters = 3
         est = KMeans(n_clusters)
@@ -63,7 +69,7 @@ def k_means(testX, goodSample,
     return float(numMatch) / numGood
 
 def gaussMixture(testX, goodSample,
-                 data=None, train=True, plot=False):
+                 data=None, train=False, plot=False):
     if train==True:
         n_classes = 3
         covar_type = 'full'
@@ -93,7 +99,7 @@ def gaussMixture(testX, goodSample,
     return float(numMatch) / numGood
 
 def gaussMixtureOld(testX, goodSample,
-                 data=None, train=True, plot=False):
+                 data=None, train=False, plot=False):
     if train==True:
         n_classes = 3
         covar_type = 'full'

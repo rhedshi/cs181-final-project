@@ -274,10 +274,11 @@ class CapsuleAgent(BaseStudentAgent):
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
         legalActs = [a for a in observedState.getLegalPacmanActions()]
 
-        print pacmanPos
-
         # position of closest good capsule to Pacman
-        closeCapsule = capsule.closest(observedState)
-        print capsule
+        closeCapsule = capsule.closest(observedState, self.distancer)
 
-        return mapH.getDirs(pacmanPos, capsule)
+        best_action = Directions.STOP
+        for dir in mapH.getDirs(pacmanPos, closeCapsule):
+            if dir in legalActs:
+                return dir
+        return best_action
