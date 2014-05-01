@@ -7,7 +7,7 @@ from learners import model_based, model_free, td_value
 import basis
 import classifyCapsule as capsule
 import mapHelper as mapH
-#import classifyGhosts as ghosts
+import classifyGhosts as ghosts
 
 class BaseStudentAgent(object):
     """Superclass of agents students will write"""
