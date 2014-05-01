@@ -8,6 +8,7 @@ import basis
 import classifyCapsule as capsule
 import mapHelper as mapH
 import classifyGhosts as ghosts
+import random
 
 class BaseStudentAgent(object):
     """Superclass of agents students will write"""
@@ -246,17 +247,21 @@ class SafeAgent(BaseStudentAgent):
         legalActs = [a for a in observedState.getLegalPacmanActions()]
 
         # find the closest ghost by sorting the distances
-        goodGhost = ghosts.closestGoodGhosts()
-        print goodGhost
+        goodGhost = ghosts.closestGhost(observedState, self.distancer, good=False)
 
         # position of closest good capsule to Pacman
-        capsule = capsule.closest()
-        print capsule
+        closeCapsule = capsule.closest(observedState, self.distancer)
 
-        if scaredGhostPresent():
-            return mapH.getDirs(pacmanPos, goodGhost)
+        best_action = random.choice(legalActs)
+        if observedState.scaredGhostPresent():
+            for dir in mapH.getDirs(pacmanPos, goodGhost):
+                if dir in legalActs:
+                    return dir
         else:
-            return mapH.getDirs(pacmanPos, capsule)
+            for dir in mapH.getDirs(pacmanPos, closeCapsule):
+                if dir in legalActs:
+                    return dir
+        return best_action
 
 class CapsuleAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
@@ -277,8 +282,33 @@ class CapsuleAgent(BaseStudentAgent):
         # position of closest good capsule to Pacman
         closeCapsule = capsule.closest(observedState, self.distancer)
 
-        best_action = Directions.STOP
+        best_action = random.choice(legalActs)
         for dir in mapH.getDirs(pacmanPos, closeCapsule):
+            if dir in legalActs:
+                return dir
+        return best_action
+
+class GhostAgent(BaseStudentAgent):
+    def __init__(self, *args, **kwargs):
+        "arguments given with the -a command line option will be passed here"
+        pass # you probably won't need this, but just in case
+
+    def registerInitialState(self, gameState):
+        "Do any necessary initialization"
+        super(GhostAgent, self).registerInitialState(gameState)
+
+    def chooseAction(self, observedState):
+        "Pacman will eat the nearest ghost."
+
+        pacmanPos = observedState.getPacmanPosition()
+        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
+        legalActs = [a for a in observedState.getLegalPacmanActions()]
+
+        # position of closest good capsule to Pacman
+        goodGhost = ghosts.closestGhost(observedState, self.distancer)
+
+        best_action = random.choice(legalActs)
+        for dir in mapH.getDirs(pacmanPos, goodGhost):
             if dir in legalActs:
                 return dir
         return best_action
