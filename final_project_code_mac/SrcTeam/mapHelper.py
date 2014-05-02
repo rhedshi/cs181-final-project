@@ -11,14 +11,14 @@ def sameSign(i1, i2):
 def getDirs(pt1, pt2):
     "returns a list of possible directions to get from pt1 to pt2"
     dirs = []
-    if pt2[0] > pt1[0]:
+    if pt2[1] > pt1[1]:
         dirs.append(Directions.NORTH)
-    elif pt2[0] < pt1[0]:
+    elif pt2[1] < pt1[1]:
         dirs.append(Directions.SOUTH)
 
-    if pt2[1] > pt1[1]:
+    if pt2[0] > pt1[0]:
         dirs.append(Directions.EAST)
-    elif pt2[1] < pt1[1]:
+    elif pt2[0] < pt1[0]:
         dirs.append(Directions.WEST)
 
     return dirs

@@ -1,16 +1,15 @@
 import numpy as np
-from observedState import ObservedState
 from distanceCalculator import Distancer
 from game import Agent
 from utils import *
 
 
 # scikit learn classification model objects
-ghost_binary_classifier = unpickle('data/ghost_binary_classifier')
-ghost_latent_class_classifier = unpickle('data/ghost_latent_class_classifier')
+ghost_binary_classifier = unpickle('SrcTeam/ghostData/ghost_binary_classifier')
+ghost_latent_class_classifier = unpickle('SrcTeam/ghostData/ghost_latent_class_classifier')
 
 # list of class conditional score regression objects
-ghost_class_score = [unpickle('data/ghost_score_' + str(x)) for x in range(4)]
+ghost_class_score = [unpickle('SrcTeam/ghostData/ghost_score_' + str(x)) for x in range(4)]
 
 def getLatentClass(feature_vector):
 	'''
@@ -29,26 +28,27 @@ def getJuicyScore(latent_class, feature_vector):
 	'''
 	return float(ghost_class_score[latent_class].predict(feature_vector)[0])
 
-def closestGoodGhost(observedState=ObservedState):
+def closestGhost(state, distancer, good=True):
 	'''
 	observedState:		object specified in the observedState.py file
 
-	return:				index of the closest good ghost
+	return:				tuple for location of the closest good ghost by default otherwise any closest ghost
 	'''
-	pacman_position = observedState.getPacmanPosition()
+	pacman_position = state.getPacmanPosition()
 
-	ghost_states = observedState.getGhostStates()
-	ghost_feature_vectors = ghost_states.getFeatures()
-	ghost_positions = ghost_states.getPosition()
+	ghost_states = state.getGhostStates()
+	ghost_feature_vectors = np.array([ghost.getFeatures() for ghost in ghost_states])
+	ghost_positions = [ghost.getPosition() for ghost in ghost_states]
 
 	ghost_latent_classes = np.array(map(int,ghost_latent_class_classifier.predict(ghost_feature_vectors)))
 
 	min_distance = np.inf
 	min_index = 0
+	b = 5 if good else 4
 	for i in range(len(ghost_states)):
-		if ghost_latent_classes[i] != 5:
-			distance = Distancer.getDistance(pacman_position, ghost_positions[i])
+		if ghost_latent_classes[i] != b:
+			distance = distancer.getDistance(pacman_position, ghost_positions[i])
 			if distance < min_distance:
 				min_distance = distance
 				min_index = i
-	return min_index
+	return ghost_positions[min_index]

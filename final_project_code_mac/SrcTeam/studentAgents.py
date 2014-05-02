@@ -10,6 +10,7 @@ import mapHelper as mapH
 import classifyGhosts as ghosts
 import os.path
 import utils
+import random
 
 class BaseStudentAgent(object):
     """Superclass of agents students will write"""
@@ -249,18 +250,10 @@ class HighRollerAgent(BaseStudentAgent):
         print capsule
 
 
-        # take the action that minimizes distance to the current closest ghost
-        best_action = Directions.STOP
-        best_dist = -np.inf
-        for la in legalActs:
-            if la == Directions.STOP:
-                continue
-            successor_pos = Actions.getSuccessor(pacmanPos,la)
-            new_dist = self.distancer.getDistance(successor_pos,ghost_states[closest_idx].getPosition())
-            if new_dist > best_dist:
-                best_action = la
-                best_dist = new_dist
-        return best_action
+        if scaredGhostPresent():
+            return mapH.getDirs(pacmanPos, closest_idx)
+        else:
+            return mapH.getDirs(pacmanPos, capsule)
 
 class SafeAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
@@ -281,18 +274,70 @@ class SafeAgent(BaseStudentAgent):
         pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
         legalActs = [a for a in observedState.getLegalPacmanActions()]
-        ghost_dists = np.array([self.distancer.getDistance(pacmanPos,gs.getPosition())
-                              for gs in ghost_states])
+
         # find the closest ghost by sorting the distances
-        closest_idx = sorted(zip(range(len(ghost_states)),ghost_dists), key=lambda t: t[1])[0][0]
-        goodGhost = ghosts.closestGoodGhosts()
-        print goodGhost
+        goodGhost = ghosts.closestGhost(observedState, self.distancer, good=False)
 
         # position of closest good capsule to Pacman
-        capsule = capsule.closest()
-        print capsule
+        closeCapsule = capsule.closest(observedState, self.distancer)
 
-        if scaredGhostPresent():
-            return mapH.getDirs(pacmanPos, goodGhost)
+        best_action = random.choice(legalActs)
+        if observedState.scaredGhostPresent():
+            for dir in mapH.getDirs(pacmanPos, goodGhost):
+                if dir in legalActs:
+                    return dir
         else:
-            return mapH.getDirs(pacmanPos, capsule)
+            for dir in mapH.getDirs(pacmanPos, closeCapsule):
+                if dir in legalActs:
+                    return dir
+        return best_action
+
+class CapsuleAgent(BaseStudentAgent):
+    def __init__(self, *args, **kwargs):
+        "arguments given with the -a command line option will be passed here"
+        pass # you probably won't need this, but just in case
+
+    def registerInitialState(self, gameState):
+        "Do any necessary initialization"
+        super(CapsuleAgent, self).registerInitialState(gameState)
+
+    def chooseAction(self, observedState):
+        "Pacman will eat the nearest good capsule."
+
+        pacmanPos = observedState.getPacmanPosition()
+        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
+        legalActs = [a for a in observedState.getLegalPacmanActions()]
+
+        # position of closest good capsule to Pacman
+        closeCapsule = capsule.closest(observedState, self.distancer)
+
+        best_action = random.choice(legalActs)
+        for dir in mapH.getDirs(pacmanPos, closeCapsule):
+            if dir in legalActs:
+                return dir
+        return best_action
+
+class GhostAgent(BaseStudentAgent):
+    def __init__(self, *args, **kwargs):
+        "arguments given with the -a command line option will be passed here"
+        pass # you probably won't need this, but just in case
+
+    def registerInitialState(self, gameState):
+        "Do any necessary initialization"
+        super(GhostAgent, self).registerInitialState(gameState)
+
+    def chooseAction(self, observedState):
+        "Pacman will eat the nearest ghost."
+
+        pacmanPos = observedState.getPacmanPosition()
+        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
+        legalActs = [a for a in observedState.getLegalPacmanActions()]
+
+        # position of closest good capsule to Pacman
+        goodGhost = ghosts.closestGhost(observedState, self.distancer)
+
+        best_action = random.choice(legalActs)
+        for dir in mapH.getDirs(pacmanPos, goodGhost):
+            if dir in legalActs:
+                return dir
+        return best_action
