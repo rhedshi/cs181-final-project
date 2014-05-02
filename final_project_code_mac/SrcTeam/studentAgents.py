@@ -263,6 +263,43 @@ class SafeAgent(BaseStudentAgent):
                     return dir
         return best_action
 
+class BadGhostAgent(BaseStudentAgent):
+    def __init__(self, *args, **kwargs):
+        "arguments given with the -a command line option will be passed here"
+        pass # you probably won't need this, but just in case
+
+    def registerInitialState(self, gameState):
+        "Do any necessary initialization"
+        super(BadGhostAgent, self).registerInitialState(gameState)
+
+    def chooseAction(self, observedState):
+        """
+        Pacman will eat the nearest good capsule if the ghost is not scared,
+        and eat good ghosts otherwise. Along the way, he will adjust his path to
+        run into good ghosts.
+        """
+
+        pacmanPos = observedState.getPacmanPosition()
+        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
+        legalActs = [a for a in observedState.getLegalPacmanActions()]
+
+        # find the closest ghost by sorting the distances
+        badGhost = ghosts.getNearestBadGhost(observedState, self.distancer)
+
+        # position of closest good capsule to Pacman
+        closeCapsule = capsule.closest(observedState, self.distancer)
+
+        best_action = random.choice(legalActs)
+        if observedState.scaredGhostPresent():
+            for dir in mapH.getDirs(pacmanPos, badGhost):
+                if dir in legalActs:
+                    return dir
+        else:
+            for dir in mapH.getDirs(pacmanPos, closeCapsule):
+                if dir in legalActs:
+                    return dir
+        return best_action
+
 class CapsuleAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
         "arguments given with the -a command line option will be passed here"
@@ -309,6 +346,31 @@ class GhostAgent(BaseStudentAgent):
 
         best_action = random.choice(legalActs)
         for dir in mapH.getDirs(pacmanPos, goodGhost):
+            if dir in legalActs:
+                return dir
+        return best_action
+
+class NearestBadGhostAgent(BaseStudentAgent):
+    def __init__(self, *args, **kwargs):
+        "arguments given with the -a command line option will be passed here"
+        pass # you probably won't need this, but just in case
+
+    def registerInitialState(self, gameState):
+        "Do any necessary initialization"
+        super(NearestBadGhostAgent, self).registerInitialState(gameState)
+
+    def chooseAction(self, observedState):
+        "Pacman will eat the nearest ghost."
+
+        pacmanPos = observedState.getPacmanPosition()
+        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
+        legalActs = [a for a in observedState.getLegalPacmanActions()]
+
+        # position of closest good capsule to Pacman
+        badGhost = ghosts.getNearestBadGhost(observedState, self.distancer)
+
+        best_action = random.choice(legalActs)
+        for dir in mapH.getDirs(pacmanPos, badGhost):
             if dir in legalActs:
                 return dir
         return best_action

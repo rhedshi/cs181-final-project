@@ -30,7 +30,8 @@ def getJuicyScore(latent_class, feature_vector):
 
 def closestGhost(state, distancer, good=True):
 	'''
-	observedState:		object specified in the observedState.py file
+	state:				the current observedState of the game passed in from studentAgents.py
+	distancer:			the self.distancer object passed in from studentAgents.py
 
 	return:				tuple for location of the closest good ghost by default otherwise any closest ghost
 	'''
@@ -47,6 +48,31 @@ def closestGhost(state, distancer, good=True):
 	b = 5 if good else 4
 	for i in range(len(ghost_states)):
 		if ghost_latent_classes[i] != b:
+			distance = distancer.getDistance(pacman_position, ghost_positions[i])
+			if distance < min_distance:
+				min_distance = distance
+				min_index = i
+	return ghost_positions[min_index]
+
+def getNearestBadGhost(state, distancer):
+	'''
+	state:				the current observedState of the game passed in from studentAgents.py
+	distancer:			the self.distancer object passed in from studentAgents.py
+
+	return:				tuple for location of the closest good ghost by default otherwise any closest ghost
+	'''
+	pacman_position = state.getPacmanPosition()
+
+	ghost_states = state.getGhostStates()
+	ghost_feature_vectors = np.array([ghost.getFeatures() for ghost in ghost_states])
+	ghost_positions = [ghost.getPosition() for ghost in ghost_states]
+
+	ghost_binary = np.array(map(int,ghost_binary_classifier.predict(ghost_feature_vectors)))
+
+	min_distance = np.inf
+	min_index = 0
+	for i in range(len(ghost_states)):
+		if ghost_binary[i] == 1:
 			distance = distancer.getDistance(pacman_position, ghost_positions[i])
 			if distance < min_distance:
 				min_distance = distance
