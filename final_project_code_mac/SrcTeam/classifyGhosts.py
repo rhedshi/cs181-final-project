@@ -59,7 +59,7 @@ def getNearestBadGhost(state, distancer):
 	state:				the current observedState of the game passed in from studentAgents.py
 	distancer:			the self.distancer object passed in from studentAgents.py
 
-	return:				tuple for location of the closest good ghost by default otherwise any closest ghost
+	return:				tuple for location of the closest bad ghost
 	'''
 	pacman_position = state.getPacmanPosition()
 
