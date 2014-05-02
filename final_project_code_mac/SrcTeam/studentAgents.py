@@ -8,6 +8,8 @@ import basis
 import classifyCapsule as capsule
 import mapHelper as mapH
 import classifyGhosts as ghosts
+import os.path
+import utils
 import random
 
 class BaseStudentAgent(object):
@@ -48,18 +50,14 @@ class SrcTeamAgent(BaseStudentAgent):
         """
         arguments given with the -a command line option will be passed here
         """
-        pass # you probably won't need this, but just in case
+        self.learn_file = (kwargs['file'] if 'file' in kwargs else 'SrcTeam/data/learn_'+self.__class__.__name__)
+        self.save_every = (kwargs['save_every'] if 'save_every' in kwargs else 100)
 
     def registerInitialState(self, gameState):
         """
         Do any necessary initialization
         """
         super(SrcTeamAgent, self).registerInitialState(gameState)
-
-        # Here, you may do any necessary initialization, e.g., import some
-        # parameters you've learned, as in the following commented out lines
-        # learned_params = cPickle.load("myparams.pkl")
-        # learned_params = np.load("myparams.npy")
 
         # get all the allowed actions, encode them for learners
         self.actions = gameState.getLegalPacmanActions()
@@ -73,14 +71,22 @@ class SrcTeamAgent(BaseStudentAgent):
         # remember basis function dimensions
         self.basis_dimensions = self.basis.dimensions
 
-        # ---------------------------------------------------------------------
-        # pick a learner here
-        self.learner = model_free.ModelFreeLearner(self.basis_dimensions, self.actionCodes.values())
-        # self.learner = td_value.TDValueLearner(self.basis_dimensions, self.actionCodes.values())
-        # ---------------------------------------------------------------------
+        # try to load the learner from a file
+        if(self.learn_file and os.path.isfile(self.learn_file)):
+            self.learner = utils.unpickle(self.learn_file)
+            self.learner.reset()
+        else:
+            # ---------------------------------------------------------------------
+            # pick a learner here
+            self.learner = model_free.ModelFreeLearner(self.basis_dimensions, self.actionCodes.values())
+            # self.learner = td_value.TDValueLearner(self.basis_dimensions, self.actionCodes.values())
+            # ---------------------------------------------------------------------
 
         # initialize score
         self.score = 0
+
+        # count number of actions taken
+        self.action_count = 0
 
     def chooseAction(self, observedState):
         """
@@ -106,6 +112,13 @@ class SrcTeamAgent(BaseStudentAgent):
         # update score
         self.last_score = current_score
 
+        # update number of actions taken
+        self.action_count += 1
+
+        # save results
+        if((self.save_every > 0) and (self.action_count % self.save_every == 0)):
+            utils.pickle(self.learner, self.learn_file)
+
         # take action
         return self.actions[action_code]
 
@@ -122,7 +135,8 @@ class ActionBasisAgent(BaseStudentAgent):
         """
         arguments given with the -a command line option will be passed here
         """
-        pass # you probably won't need this, but just in case
+        self.learn_file = (kwargs['file'] if 'file' in kwargs else 'SrcTeam/data/learn_'+self.__class__.__name__)
+        self.save_every = (kwargs['save_every'] if 'save_every' in kwargs else 100)
 
     def registerInitialState(self, gameState):
         """
@@ -153,14 +167,22 @@ class ActionBasisAgent(BaseStudentAgent):
         # remember basis function dimensions
         self.basis_dimensions = self.basis.dimensions
 
-        # ---------------------------------------------------------------------
-        # pick a learner here
-        self.learner = model_free.ModelFreeLearner(self.basis_dimensions, self.actionCodes.values())
-        # self.learner = td_value.TDValueLearner(self.basis_dimensions, self.actionCodes.values())
-        # ---------------------------------------------------------------------
+        # try to load the learner from a file
+        if(self.learn_file and os.path.isfile(self.learn_file)):
+            self.learner = utils.unpickle(self.learn_file)
+            self.learner.reset()
+        else:
+            # ---------------------------------------------------------------------
+            # pick a learner here
+            self.learner = model_free.ModelFreeLearner(self.basis_dimensions, self.actionCodes.values())
+            # self.learner = td_value.TDValueLearner(self.basis_dimensions, self.actionCodes.values())
+            # ---------------------------------------------------------------------
 
         # initialize score
         self.score = 0
+
+        # count number of actions taken
+        self.action_count = 0
 
     def chooseAction(self, observedState):
         """
@@ -186,6 +208,13 @@ class ActionBasisAgent(BaseStudentAgent):
         # update score
         self.last_score = current_score
 
+        # update number of actions taken
+        self.action_count += 1
+
+        # save results
+        if((self.save_every > 0) and (self.action_count % self.save_every == 0)):
+            utils.pickle(self.learner, self.learn_file)
+            
         # take action
         return self.actionBasis(self, observedState, self.actions[action_code])
 
