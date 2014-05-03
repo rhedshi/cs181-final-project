@@ -1,6 +1,7 @@
 import classifyGhosts
 import classifyCapsule
 import operator as op
+import numpy as np
 import math
 from game import Actions
 from game import Directions
@@ -69,17 +70,17 @@ ghostDistance.dimensions = tuple( [   5   ] * (2 * (  3   +  1)) )
 # and the nearest capsule
 def goodBadGhostCapsuleDistances(self,observedState):
 	pacmanPosition = observedState.getPacmanPosition()
-	goodGhost = classifyGhosts.closestGoodGhost(observedState)
-	badGhost = classifyGhosts.closestBadGhost(observedState)
-	capsule = classifyCapsule.closest(observedState)
+	goodGhost = classifyGhosts.getNearestGoodGhost(observedState, self.distancer)
+	badGhost = classifyGhosts.getNearestBadGhost(observedState, self.distancer)
+	capsule = classifyCapsule.closest(observedState, self.distancer)
 
 	distBinner = binner( \
-		(0,Math.sqrt(observedState.layout.width**2 + observedState.layout.width**2)), \
+		(0,math.sqrt(observedState.layout.width**2 + observedState.layout.width**2)), \
 		goodBadGhostCapsuleDistances.buckets )
 
-	goodGhostDistance = self.distancer(pacmanPosition, goodGhost)
-	badGhostDistance = self.distancer(pacmanPosition, badGhost)
-	capsuleDistance = self.distancer(pacmanPosition, capsule)
+	goodGhostDistance = distBinner(self.distancer.getDistance(pacmanPosition, goodGhost))
+	badGhostDistance = distBinner(self.distancer.getDistance(pacmanPosition, badGhost))
+	capsuleDistance = distBinner(self.distancer.getDistance(pacmanPosition, capsule))
 	hasCapsule = observedState.scaredGhostPresent()
 	return (goodGhostDistance,badGhostDistance,capsuleDistance,int(hasCapsule))
 
@@ -90,6 +91,7 @@ goodBadGhostCapsuleDistances.dimensions = \
 	tuple( [goodBadGhostCapsuleDistances.buckets] * (1   + 1  +  1   ) + [ 2 ] )
 	#                     buckets                   good, bad, capsule   eaten?
 
+
 # -----------------------------------------------------------------------------
 
 # position of the neighborhood around pacman
@@ -99,9 +101,9 @@ def localNeighborhood(self, observedState):
 	xBinner = ( (pacmanPosition[0]-radius, pacmanPosition[0]+radius), buckets )
 	yBinner = ( (pacmanPosition[1]-radius, pacmanPosition[1]+radius), buckets )
 
-	goodGhost = classifyGhosts.closestGoodGhost(observedState)
-	badGhost = classifyGhosts.closestBadGhost(observedState)
-	capsule = classifyCapsule.closest(observedState)
+	goodGhost = classifyGhosts.getNearestGoodGhost(observedState, self.distancer)
+	badGhost = classifyGhosts.getNearestBadGhost(observedState, self.distancer)
+	capsule = classifyCapsule.closest(observedState, self.distancer)
 	hasCapsule = observedState.scaredGhostPresent()
 
 	# bin the x/y position for each object of interest 
@@ -120,19 +122,20 @@ localNeighborhood.dimensions = tuple( [localNeighborhood.buckets] * (2 * (1   + 
 
 def followActionBasis(self, observedState, action):
 	allowedDirections = observedState.getLegalPacmanActions()
+	pacmanPosition = observedState.getPacmanPosition()
 
 	if action == 'good':
-		target = classifyGhosts.closestGoodGhost(observedState)
+		target = classifyGhosts.getNearestGoodGhost(observedState, self.distancer)
 	elif action == 'bad':
-		target = classifyGhosts.closestBadGhost(observedState)
+		target = classifyGhosts.getNearestBadGhost(observedState, self.distancer)
 	elif action == 'capsule':
-		target = classifyCapsule.closest(observedState)
+		target = classifyCapsule.closest(observedState, self.distancer)
 	else:
 		raise Exception("Unknown action '%s' passed to action basis" % action)
 
 	# find the direction that moves closes to target
 	best_action = Directions.STOP
-	best_dist = -np.inf
+	best_dist = np.inf
 	for la in allowedDirections:
 		if la == Directions.STOP:
 			continue
