@@ -151,8 +151,8 @@ class ActionBasisAgent(BaseStudentAgent):
 
         # ---------------------------------------------------------------------
         # pick an action basis function here
-        # self.actionBasis = basis.followActionBasis
-        self.actionBasis = basis.simpleActionBasis
+        self.actionBasis = basis.followActionBasis
+        # self.actionBasis = basis.simpleActionBasis
         # ---------------------------------------------------------------------
 
         # get all the allowed actions, encode them for learners
@@ -161,7 +161,9 @@ class ActionBasisAgent(BaseStudentAgent):
 
         # ---------------------------------------------------------------------
         # pick a basis function here
-        self.basis = basis.ghostDistance
+        # self.basis = basis.ghostDistance
+        self.basis = basis.goodBadGhostCapsuleDistances
+        # self.basis = basis.localNeighborhood
         # ---------------------------------------------------------------------
 
         # remember basis function dimensions
@@ -193,9 +195,10 @@ class ActionBasisAgent(BaseStudentAgent):
         # calculate reward (score delta) for last action
         current_score = observedState.score
         last_score = self.score
-        reward = last_score - current_score
+        reward = current_score - last_score
 
         # pass reward to learner
+        print reward
         self.learner.reward_callback(reward)
 
         # apply basis function to calculate new state
@@ -206,7 +209,7 @@ class ActionBasisAgent(BaseStudentAgent):
         action_code = self.learner.action_callback(state,allowed_action_codes)
 
         # update score
-        self.last_score = current_score
+        self.score = current_score
 
         # update number of actions taken
         self.action_count += 1
@@ -216,7 +219,9 @@ class ActionBasisAgent(BaseStudentAgent):
             utils.pickle(self.learner, self.learn_file)
             
         # take action
-        return self.actionBasis(self, observedState, self.actions[action_code])
+        print state, self.actions[action_code],
+        action = self.actionBasis(self, observedState, self.actions[action_code])
+        return action
 
 # =============================================================================
 
