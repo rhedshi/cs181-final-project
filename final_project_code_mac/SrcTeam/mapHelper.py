@@ -1,4 +1,5 @@
 from game import Directions
+import random
 
 def between(pt1, pt2, pt3):
     "returns true if pt3 is between pt2 and pt1"
@@ -11,14 +12,37 @@ def sameSign(i1, i2):
 def getDirs(pt1, pt2):
     "returns a list of possible directions to get from pt1 to pt2"
     dirs = []
-    if pt2[1] > pt1[1]:
-        dirs.append(Directions.NORTH)
-    elif pt2[1] < pt1[1]:
-        dirs.append(Directions.SOUTH)
+    
+    # if pt2[1] > pt1[1]:
+    #     dirs.append(Directions.NORTH)
+    # elif pt2[1] < pt1[1]:
+    #     dirs.append(Directions.SOUTH)
 
-    if pt2[0] > pt1[0]:
-        dirs.append(Directions.EAST)
-    elif pt2[0] < pt1[0]:
-        dirs.append(Directions.WEST)
+    # if pt2[0] > pt1[0]:
+    #     dirs.append(Directions.EAST)
+    # elif pt2[0] < pt1[0]:
+    #     dirs.append(Directions.WEST)
 
+    x = random.randint(0,1)
+    if pt2[x] > pt1[x]:
+        if x == 1:
+            dirs.append(Directions.NORTH)
+        else:
+            dirs.append(Directions.EAST)
+    elif pt2[x] < pt1[x]:
+        if x == 1:
+            dirs.append(Directions.SOUTH)
+        else:
+            dirs.append(Directions.WEST)
+
+    if pt2[1-x] > pt1[1-x]:
+        if x == 0:
+            dirs.append(Directions.NORTH)
+        else:
+            dirs.append(Directions.EAST)
+    elif pt2[1-x] < pt1[1-x]:
+        if x == 0:
+            dirs.append(Directions.SOUTH)
+        else:
+            dirs.append(Directions.WEST)
     return dirs
