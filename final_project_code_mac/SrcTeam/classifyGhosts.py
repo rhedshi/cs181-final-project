@@ -64,6 +64,9 @@ def closestGhost(state, distancer, good=True):
 				min_index = i
 	return ghost_positions[min_index]
 
+def getNearestGoodGhost(state, distancer):
+	return closestGhost(state, distancer, True)
+
 def getNearestBadGhost(state, distancer):
 	'''
 	state:				the current observedState of the game passed in from studentAgents.py

@@ -39,91 +39,6 @@ class BaseStudentAgent(object):
 
 # =============================================================================
 
-class SrcTeamAgent(BaseStudentAgent):
-    """
-    An example TeamAgent. After renaming this agent so it is called <YourTeamName>Agent,
-    (and also renaming it in registerInitialState() below), modify the behavior
-    of this class so it does well in the pacman game!
-    """
-
-    def __init__(self, *args, **kwargs):
-        """
-        arguments given with the -a command line option will be passed here
-        """
-        self.learn_file = (kwargs['file'] if 'file' in kwargs else 'SrcTeam/data/learn_'+self.__class__.__name__)
-        self.save_every = (kwargs['save_every'] if 'save_every' in kwargs else 100)
-
-    def registerInitialState(self, gameState):
-        """
-        Do any necessary initialization
-        """
-        super(SrcTeamAgent, self).registerInitialState(gameState)
-
-        # get all the allowed actions, encode them for learners
-        self.actions = gameState.getLegalPacmanActions()
-        self.actionCodes = { action: i for (i, action) in enumerate(self.actions) }
-
-        # ---------------------------------------------------------------------
-        # pick a basis function here
-        self.basis = basis.ghostDistance
-        # ---------------------------------------------------------------------
-
-        # remember basis function dimensions
-        self.basis_dimensions = self.basis.dimensions
-
-        # try to load the learner from a file
-        if(self.learn_file and os.path.isfile(self.learn_file)):
-            self.learner = utils.unpickle(self.learn_file)
-            self.learner.reset()
-        else:
-            # ---------------------------------------------------------------------
-            # pick a learner here
-            self.learner = model_free.ModelFreeLearner(self.basis_dimensions, self.actionCodes.values())
-            # self.learner = td_value.TDValueLearner(self.basis_dimensions, self.actionCodes.values())
-            # ---------------------------------------------------------------------
-
-        # initialize score
-        self.score = 0
-
-        # count number of actions taken
-        self.action_count = 0
-
-    def chooseAction(self, observedState):
-        """
-        Here, choose pacman's next action based on the current state of the game.
-        This is where all the action happens.
-        """
-
-        # calculate reward (score delta) for last action
-        current_score = observedState.score
-        last_score = self.score
-        reward = last_score - current_score
-
-        # pass reward to learner
-        self.learner.reward_callback(reward)
-
-        # apply basis function to calculate new state
-        state = self.basis(self,observedState)
-
-        # ask learner to plan new state
-        allowed_action_codes = [self.actionCodes[a] for a in observedState.getLegalPacmanActions()]
-        action_code = self.learner.action_callback(state,allowed_action_codes)
-
-        # update score
-        self.last_score = current_score
-
-        # update number of actions taken
-        self.action_count += 1
-
-        # save results
-        if((self.save_every > 0) and (self.action_count % self.save_every == 0)):
-            utils.pickle(self.learner, self.learn_file)
-
-        # take action
-        return self.actions[action_code]
-
-# =============================================================================
-
 class ActionBasisAgent(BaseStudentAgent):
     """
     An example TeamAgent. After renaming this agent so it is called <YourTeamName>Agent,
@@ -151,8 +66,8 @@ class ActionBasisAgent(BaseStudentAgent):
 
         # ---------------------------------------------------------------------
         # pick an action basis function here
-        # self.actionBasis = basis.followActionBasis
-        self.actionBasis = basis.simpleActionBasis
+        self.actionBasis = basis.followActionBasis
+        # self.actionBasis = basis.simpleActionBasis
         # ---------------------------------------------------------------------
 
         # get all the allowed actions, encode them for learners
@@ -161,7 +76,9 @@ class ActionBasisAgent(BaseStudentAgent):
 
         # ---------------------------------------------------------------------
         # pick a basis function here
-        self.basis = basis.ghostDistance
+        # self.basis = basis.ghostDistance
+        self.basis = basis.goodBadGhostCapsuleDistances
+        # self.basis = basis.localNeighborhood
         # ---------------------------------------------------------------------
 
         # remember basis function dimensions
@@ -193,9 +110,10 @@ class ActionBasisAgent(BaseStudentAgent):
         # calculate reward (score delta) for last action
         current_score = observedState.score
         last_score = self.score
-        reward = last_score - current_score
+        reward = current_score - last_score
 
         # pass reward to learner
+        print reward
         self.learner.reward_callback(reward)
 
         # apply basis function to calculate new state
@@ -206,7 +124,7 @@ class ActionBasisAgent(BaseStudentAgent):
         action_code = self.learner.action_callback(state,allowed_action_codes)
 
         # update score
-        self.last_score = current_score
+        self.score = current_score
 
         # update number of actions taken
         self.action_count += 1
@@ -216,7 +134,9 @@ class ActionBasisAgent(BaseStudentAgent):
             utils.pickle(self.learner, self.learn_file)
             
         # take action
-        return self.actionBasis(self, observedState, self.actions[action_code])
+        print state, self.actions[action_code],
+        action = self.actionBasis(self, observedState, self.actions[action_code])
+        return action
 
 # =============================================================================
 
@@ -403,3 +323,8 @@ class NearestBadGhostAgent(BaseStudentAgent):
             if dir in legalActs:
                 return dir
         return best_action
+
+# =============================================================================
+
+# Set the exported agent here
+SrcTeamAgent = ActionBasisAgent
