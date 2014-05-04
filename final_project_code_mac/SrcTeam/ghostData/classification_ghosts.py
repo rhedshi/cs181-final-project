@@ -74,10 +74,9 @@ def ghost_latent_class_classifier():
 X = ghost_feature_vector
 y = ghost_latent_class
 
+# TODO: Change this to choose which method of classification and save the model
 model = linear_model.LogisticRegression().fit(X,y)
 predict = model.predict(ghost_feature_vector[0])
-print ghost_feature_vector[0]
-print int(predict[0])
 
 # Latent Class Conditional Score Regression
 
@@ -108,6 +107,7 @@ def class_conditional_score_regression():
 		print "Avg. Err: %f" % cv_err_mean
 		print "Std. Err: %f" % cv_err_std
 
+		# TODO: Change this to choose which method of classification and save the model
 		model = linear_model.BayesianRidge().fit(X,y)
 		print model.score(X,y)
 		pickle(model,'ghost_score_' + str(i))
@@ -143,7 +143,9 @@ def ghost_binary_classifier():
 		print "Avg. Err: %f" % cv_err_mean
 		print "Std. Err: %f" % cv_err_std
 
-	# LogRegress = linear_model.LogisticRegression().fit(X,y)
-	# pickle(LogRegress,'ghost_binary_classifier')
+	# TODO: Change this to choose which method of classification and save the model
+	LogRegress = linear_model.LogisticRegression().fit(X,y)
+	pickle(LogRegress,'ghost_binary_classifier')
 
+# TODO: Change this to run each function
 ghost_binary_classifier()
