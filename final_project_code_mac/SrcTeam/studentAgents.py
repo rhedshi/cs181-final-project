@@ -132,48 +132,13 @@ class ActionBasisAgent(BaseStudentAgent):
         # save results
         if((self.save_every > 0) and (self.action_count % self.save_every == 0)):
             utils.pickle(self.learner, self.learn_file)
-            
+
         # take action
         print state, self.actions[action_code],
         action = self.actionBasis(self, observedState, self.actions[action_code])
         return action
 
 # =============================================================================
-
-class HighRollerAgent(BaseStudentAgent):
-    def __init__(self, *args, **kwargs):
-        "arguments given with the -a command line option will be passed here"
-        pass # you probably won't need this, but just in case
-
-    def registerInitialState(self, gameState):
-        "Do any necessary initialization"
-        super(HighRollerAgent, self).registerInitialState(gameState)
-
-    def chooseAction(self, observedState):
-        """
-        Pacman will chase the scared ghost if present, and the nearest good
-        capsule otherwise. Along the way, he will adjust his path to run into
-        good ghosts.
-        """
-
-        pacmanPos = observedState.getPacmanPosition()
-        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
-        legalActs = [a for a in observedState.getLegalPacmanActions()]
-        ghost_dists = np.array([self.distancer.getDistance(pacmanPos,gs.getPosition())
-                              for gs in ghost_states])
-        # find the closest ghost by sorting the distances
-        closest_idx = sorted(zip(range(len(ghost_states)),ghost_dists), key=lambda t: t[1])[0][0]
-
-
-        # closest good capsule to Pacman
-        capsule = capsule.closest()
-        print capsule
-
-
-        if scaredGhostPresent():
-            return mapH.getDirs(pacmanPos, closest_idx)
-        else:
-            return mapH.getDirs(pacmanPos, capsule)
 
 class SafeAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
@@ -224,15 +189,14 @@ class BadGhostAgent(BaseStudentAgent):
     def chooseAction(self, observedState):
         """
         Pacman will eat the nearest good capsule if the ghost is not scared,
-        and eat good ghosts otherwise. Along the way, he will adjust his path to
-        run into good ghosts.
+        and chase the scared ghost otherwise.
         """
 
         pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
         legalActs = [a for a in observedState.getLegalPacmanActions()]
 
-        # find the closest ghost by sorting the distances
+        # find the closest bad ghost by sorting the distances
         badGhost = ghosts.getNearestBadGhost(observedState, self.distancer)
 
         # position of closest good capsule to Pacman
