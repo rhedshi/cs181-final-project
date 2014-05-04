@@ -23,7 +23,7 @@ def xbin(value, range, bins):
     	return 0
 
     bin_size = (range[1] - range[0]) / bins
-    return math.floor((value - range[0]) / bin_size)
+    return min(max(math.floor((value - range[0]) / bin_size),0),bins-1)
 
 def binner(range, bins):
 	return lambda value: bin(value, range, bins)
@@ -192,10 +192,10 @@ def localNeighborhoodInitializer(learner):
 	lefPos,rigPos = minPos, maxPos
 	hasCapsuleIndex = -1
 	for s in np.ndindex(localNeighborhood.dimensions):
-		if s[badGhostYIndex] > centerPos and s[badGhostYIndex] < topPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['North'],)] = -1200
-		if s[badGhostYIndex] < centerPos and s[badGhostYIndex] > botPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['South'],)] = -1200
-		if s[badGhostXIndex] < centerPos and s[badGhostXIndex] > lefPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['West'],)] = -1200
-		if s[badGhostXIndex] > centerPos and s[badGhostXIndex] < rigPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['East'],)] = -1200
+		if s[badGhostYIndex] >= centerPos and s[badGhostYIndex] < topPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['North'],)] = -1200
+		if s[badGhostYIndex] <  centerPos and s[badGhostYIndex] > botPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['South'],)] = -1200
+		if s[badGhostXIndex] <  centerPos and s[badGhostXIndex] > lefPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['West'],)] = -1200
+		if s[badGhostXIndex] >= centerPos and s[badGhostXIndex] < rigPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['East'],)] = -1200
 
 		if s[badGhostYIndex] > botPos and s[badGhostYIndex] < topPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['Stop'],)] = -1200
 		if s[badGhostXIndex] < rigPos and s[badGhostYIndex] > lefPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['Stop'],)] = -1200
