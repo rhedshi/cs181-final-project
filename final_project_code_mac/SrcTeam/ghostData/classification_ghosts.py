@@ -45,7 +45,7 @@ def ghost_latent_class_classifier():
 
 	X = ghost_feature_vector
 	y = ghost_latent_class
-
+	"""
 	kf = cross_validation.KFold(len(y),n_folds=k,shuffle=True)
 
 	for method in methods:
@@ -67,6 +67,7 @@ def ghost_latent_class_classifier():
 		print
 		print "Avg. Err: %f" % cv_err_mean
 		print "Std. Err: %f" % cv_err_std
+	"""
 
 	OneVsOne = OneVsOneClassifier(LinearSVC()).fit(X,y)
 	pickle(OneVsOne,'ghost_latent_class_classifier')
@@ -120,7 +121,7 @@ def ghost_binary_classifier():
 
 	X = ghost_feature_vector
 	y = ghost_binary
-
+	"""
 	kf = cross_validation.KFold(len(y),n_folds=k,shuffle=True)
 
 	for method in methods:
@@ -142,10 +143,10 @@ def ghost_binary_classifier():
 		print
 		print "Avg. Err: %f" % cv_err_mean
 		print "Std. Err: %f" % cv_err_std
-
+	"""
 	# TODO: Change this to choose which method of classification and save the model
 	LogRegress = linear_model.LogisticRegression().fit(X,y)
 	pickle(LogRegress,'ghost_binary_classifier')
 
 # TODO: Change this to run each function
-ghost_binary_classifier()
+ghost_latent_class_classifier()

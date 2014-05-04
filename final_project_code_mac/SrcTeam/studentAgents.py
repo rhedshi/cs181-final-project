@@ -273,7 +273,7 @@ class NearestBadGhostAgent(BaseStudentAgent):
         super(NearestBadGhostAgent, self).registerInitialState(gameState)
 
     def chooseAction(self, observedState):
-        "Pacman will eat the nearest ghost."
+        "Pacman will eat the nearest bad ghost."
 
         pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
