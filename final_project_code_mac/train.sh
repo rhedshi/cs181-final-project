@@ -1,0 +1,5 @@
+python train.py GoodBadCapsuleDistanceAgent
+python train.py SeededGoodBadCapsuleDistanceAgent
+python train.py LocalNeighborhoodAgent
+python train.py SeededLocalNeighborhoodAgent
+python train.py GhostPositionAgent
