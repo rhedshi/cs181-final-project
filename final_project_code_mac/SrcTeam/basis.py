@@ -97,6 +97,7 @@ goodBadGhostCapsuleDistances.dimensions = \
 def localNeighborhood(self, observedState):
 	radius = 4
 	pacmanPosition = observedState.getPacmanPosition()
+
 	xBinner = xbinner( (pacmanPosition[0]-radius, pacmanPosition[0]+radius), localNeighborhood.buckets )
 	yBinner = xbinner( (pacmanPosition[1]-radius, pacmanPosition[1]+radius), localNeighborhood.buckets )
 
@@ -104,6 +105,9 @@ def localNeighborhood(self, observedState):
 	badGhost = classifyGhosts.getNearestBadGhost(observedState, self.distancer)
 	capsule = classifyCapsule.closest(observedState, self.distancer)
 	hasCapsule = observedState.scaredGhostPresent()
+
+
+	print pacmanPosition, goodGhost, badGhost, capsule, hasCapsule
 
 	# bin the x/y position for each object of interest 
 	b = []
@@ -166,8 +170,34 @@ simpleActionBasis.allActions = Actions._directions.keys()
 
 initializers = {}
 
-def goodBadFollowInitializer(Q):
-	pass
+def goodBadFollowInitializer(learner):
+	actionCodes = { action: i for (i, action) in enumerate(followActionBasis.allActions) }
+	hasCapsuleIndex = -1
+	for s in np.ndindex(goodBadGhostCapsuleDistances.dimensions):
+		learner.Q[s + (actionCodes['bad'],)] = -1200 if s[hasCapsuleIndex] == 0 else 0
+		learner.Q[s + (actionCodes['capsule'],)] = -100 if s[hasCapsuleIndex] == 1 else 0 
+	
 
-initializers[goodBadGhostCapsuleDistances,followActionBasis] = goodBadFollowInitializer
+initializers['goodBadGhostCapsuleDistances','followActionBasis'] = goodBadFollowInitializer
 
+def localNeighborhoodInitializer(learner):
+	actionCodes = { action: i for (i, action) in enumerate(simpleActionBasis.allActions) }
+	
+	badGhostXIndex = 2
+	badGhostYIndex = 3
+	centerPos = localNeighborhood.buckets / 2.0
+	maxPos = localNeighborhood.buckets - 1
+	minPos = 0
+	topPos,botPos = maxPos, minPos
+	lefPos,rigPos = minPos, maxPos
+	hasCapsuleIndex = -1
+	for s in np.ndindex(localNeighborhood.dimensions):
+		if s[badGhostYIndex] > centerPos and s[badGhostYIndex] < topPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['North'],)] = -1200
+		if s[badGhostYIndex] < centerPos and s[badGhostYIndex] > botPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['South'],)] = -1200
+		if s[badGhostXIndex] < centerPos and s[badGhostXIndex] > lefPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['West'],)] = -1200
+		if s[badGhostXIndex] > centerPos and s[badGhostXIndex] < rigPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['East'],)] = -1200
+
+		if s[badGhostYIndex] > botPos and s[badGhostYIndex] < topPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['Stop'],)] = -1200
+		if s[badGhostXIndex] < rigPos and s[badGhostYIndex] > lefPos and s[hasCapsuleIndex] == 0: learner.Q[s + (actionCodes['Stop'],)] = -1200
+
+initializers['localNeighborhood','simpleActionBasis'] = localNeighborhoodInitializer

@@ -70,6 +70,7 @@ class ActionBasisAgent(BaseStudentAgent):
     # learner_class = td_value.TDValueLearner
     # ---------------------------------------------------------------------
 
+    use_initializer = False
 
     def __init__(self, *args, **kwargs):
         """
@@ -107,7 +108,14 @@ class ActionBasisAgent(BaseStudentAgent):
             self.learner.reset()
         else:
             self.learner = self.learner_class(self.basis_dimensions, self.actionCodes.values())
-            
+            if(self.use_initializer):
+                if (self.basis.__name__, self.actionBasis.__name__) in basis.initializers:
+                    basis.initializers[(self.basis.__name__, self.actionBasis.__name__)](self.learner)
+                    print "Initialized successfully"
+                else:
+                    print "No initializer found"
+                    raise "Whoops"
+
         # initialize score
         self.score = 0
 
@@ -154,6 +162,20 @@ class ActionBasisAgent(BaseStudentAgent):
 
 # =============================================================================
 
+class SeededGoodBadCapsuleDistanceAgent(ActionBasisAgent):
+    actionBasis = basis.followActionBasis
+    basis = basis.goodBadGhostCapsuleDistances
+    learner_class = model_free.ModelFreeLearner
+    use_initializer = True
+    def registerInitialState(self, gameState):
+        """
+        Do any necessary initialization
+        """
+        super(SeededGoodBadCapsuleDistanceAgent, self).registerInitialState(gameState)
+
+# =============================================================================
+
+
 class GoodBadCapsuleDistanceAgent(ActionBasisAgent):
     actionBasis = basis.followActionBasis
     basis = basis.goodBadGhostCapsuleDistances
@@ -163,6 +185,18 @@ class GoodBadCapsuleDistanceAgent(ActionBasisAgent):
         Do any necessary initialization
         """
         super(GoodBadCapsuleDistanceAgent, self).registerInitialState(gameState)
+
+# =============================================================================
+
+class SeededLocalNeighborhoodAgent(ActionBasisAgent):
+    actionBasis = basis.simpleActionBasis
+    basis = basis.localNeighborhood
+    use_initializer = True
+    def registerInitialState(self, gameState):
+        """
+        Do any necessary initialization
+        """
+        super(SeededLocalNeighborhoodAgent, self).registerInitialState(gameState)
 
 # =============================================================================
 
