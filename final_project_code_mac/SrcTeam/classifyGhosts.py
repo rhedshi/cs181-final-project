@@ -3,10 +3,20 @@ from distanceCalculator import Distancer
 from game import Agent
 from utils import *
 
+from sklearn.multiclass import *
+from sklearn.svm import *
+from sklearn import cross_validation
+from sklearn import linear_model
+
+import random
 
 # scikit learn classification model objects
 ghost_binary_classifier = unpickle('SrcTeam/ghostData/ghost_binary_classifier')
 ghost_latent_class_classifier = unpickle('SrcTeam/ghostData/ghost_latent_class_classifier')
+# ghost_binary_parameters = unpickle('SrcTeam/ghostData/ghost_binary_parameters')
+# ghost_latent_class_parameters = unpickle('SrcTeam/ghostData/ghost_latent_class_parameters')
+# ghost_binary_classifier = linear_model.LogisticRegression().set_params(ghost_binary_parameters)
+# ghost_latent_class_classifier = OneVsOneClassifier(LinearSVC()).set_params(ghost_latent_class_parameters)
 
 # list of class conditional score regression objects
 ghost_class_score = [unpickle('SrcTeam/ghostData/ghost_score_' + str(x)) for x in range(4)]
@@ -67,10 +77,10 @@ def getNearestBadGhost(state, distancer):
 	ghost_feature_vectors = np.array([ghost.getFeatures() for ghost in ghost_states])
 	ghost_positions = [ghost.getPosition() for ghost in ghost_states]
 
-	ghost_binary = np.array(map(int,ghost_binary_classifier.predict(ghost_feature_vectors)))
+	ghost_binary = map(int,ghost_binary_classifier.predict(ghost_feature_vectors))
 
 	min_distance = np.inf
-	min_index = 0
+	min_index = random.randint(0,3)
 	for i in range(len(ghost_states)):
 		if ghost_binary[i] == 1:
 			distance = distancer.getDistance(pacman_position, ghost_positions[i])
