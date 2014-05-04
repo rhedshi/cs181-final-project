@@ -41,17 +41,45 @@ class BaseStudentAgent(object):
 
 class ActionBasisAgent(BaseStudentAgent):
     """
-    An example TeamAgent. After renaming this agent so it is called <YourTeamName>Agent,
-    (and also renaming it in registerInitialState() below), modify the behavior
-    of this class so it does well in the pacman game!
+    An agent that does reinforcement learning with a configurable learning
+    method (Q-learning or TD-value learning), basis function, and action-basis
+    function (see basis.py). Basis functions map the observedState to a tuple of
+    integers representing the current state of the MDP, while action basis
+    functions allow the recommended action from the learner to be mapped to a
+    direction. This allows e.g. for the learner to decide whether to follow the
+    good ghost, the bad ghost, or a capsule---rather than simply deciding
+    whether to go up/down/left/right.
     """
+
+    # ---------------------------------------------------------------------
+    # pick an action basis function here
+    actionBasis = basis.followActionBasis
+    # actionBasis = basis.simpleActionBasis
+    # ---------------------------------------------------------------------
+
+    # ---------------------------------------------------------------------
+    # pick a basis function here
+    # basis = basis.ghostDistance
+    basis = basis.goodBadGhostCapsuleDistances
+    # basis = basis.localNeighborhood
+    # ---------------------------------------------------------------------
+
+    # ---------------------------------------------------------------------
+    # pick a learner here
+    learner_class = model_free.ModelFreeLearner
+    # learner_class = td_value.TDValueLearner
+    # ---------------------------------------------------------------------
+
 
     def __init__(self, *args, **kwargs):
         """
         arguments given with the -a command line option will be passed here
         """
-        self.learn_file = (kwargs['file'] if 'file' in kwargs else 'SrcTeam/data/learn_'+self.__class__.__name__)
+        self.learn_file = (kwargs['file'] if 'file' in kwargs \
+            else 'SrcTeam/data/learn_'+self.__class__.__name__)
         self.save_every = (kwargs['save_every'] if 'save_every' in kwargs else 100)
+        self.restart_learning = (kwargs['restart'] if 'restart' in kwargs else False)
+        self.chatter = (kwargs['chatter'] if 'chatter' in kwargs else False)
 
     def registerInitialState(self, gameState):
         """
@@ -64,37 +92,22 @@ class ActionBasisAgent(BaseStudentAgent):
         # learned_params = cPickle.load("myparams.pkl")
         # learned_params = np.load("myparams.npy")
 
-        # ---------------------------------------------------------------------
-        # pick an action basis function here
-        self.actionBasis = basis.followActionBasis
-        # self.actionBasis = basis.simpleActionBasis
-        # ---------------------------------------------------------------------
+
 
         # get all the allowed actions, encode them for learners
         self.actions = self.actionBasis.allActions[:]
         self.actionCodes = { action: i for (i, action) in enumerate(self.actions) }
 
-        # ---------------------------------------------------------------------
-        # pick a basis function here
-        # self.basis = basis.ghostDistance
-        self.basis = basis.goodBadGhostCapsuleDistances
-        # self.basis = basis.localNeighborhood
-        # ---------------------------------------------------------------------
-
         # remember basis function dimensions
         self.basis_dimensions = self.basis.dimensions
 
         # try to load the learner from a file
-        if(self.learn_file and os.path.isfile(self.learn_file)):
+        if(self.learn_file and os.path.isfile(self.learn_file) and not self.restart_learning):
             self.learner = utils.unpickle(self.learn_file)
             self.learner.reset()
         else:
-            # ---------------------------------------------------------------------
-            # pick a learner here
-            self.learner = model_free.ModelFreeLearner(self.basis_dimensions, self.actionCodes.values())
-            # self.learner = td_value.TDValueLearner(self.basis_dimensions, self.actionCodes.values())
-            # ---------------------------------------------------------------------
-
+            self.learner = self.learner_class(self.basis_dimensions, self.actionCodes.values())
+            
         # initialize score
         self.score = 0
 
@@ -111,13 +124,13 @@ class ActionBasisAgent(BaseStudentAgent):
         current_score = observedState.score
         last_score = self.score
         reward = current_score - last_score
+        if self.chatter: print reward
 
         # pass reward to learner
-        print reward
         self.learner.reward_callback(reward)
 
         # apply basis function to calculate new state
-        state = self.basis(self,observedState)
+        state = self.basis(observedState)
 
         # ask learner to plan new state
         allowed_action_codes = [self.actionCodes[a] for a in self.actionBasis.allowedActions(self, observedState)]
@@ -131,12 +144,48 @@ class ActionBasisAgent(BaseStudentAgent):
 
         # save results
         if((self.save_every > 0) and (self.action_count % self.save_every == 0)):
+            if self.chatter: print "Saving..."
             utils.pickle(self.learner, self.learn_file)
             
         # take action
-        print state, self.actions[action_code],
-        action = self.actionBasis(self, observedState, self.actions[action_code])
+        if self.chatter: print state, self.actions[action_code],
+        action = self.actionBasis(observedState, self.actions[action_code])
         return action
+
+# =============================================================================
+
+class GoodBadCapsuleDistanceAgent(ActionBasisAgent):
+    actionBasis = basis.followActionBasis
+    basis = basis.goodBadGhostCapsuleDistances
+    learner_class = model_free.ModelFreeLearner
+    def registerInitialState(self, gameState):
+        """
+        Do any necessary initialization
+        """
+        super(GoodBadCapsuleDistanceAgent, self).registerInitialState(gameState)
+
+# =============================================================================
+
+class LocalNeighborhoodAgent(ActionBasisAgent):
+    actionBasis = basis.simpleActionBasis
+    basis = basis.localNeighborhood
+    def registerInitialState(self, gameState):
+        """
+        Do any necessary initialization
+        """
+        super(LocalNeighborhoodAgent, self).registerInitialState(gameState)
+
+# =============================================================================
+
+
+class GhostPositionAgent(ActionBasisAgent):
+    actionBasis = basis.simpleActionBasis
+    basis = basis.ghostPosition
+    def registerInitialState(self, gameState):
+        """
+        Do any necessary initialization
+        """
+        super(GhostPositionAgent, self).registerInitialState(gameState)
 
 # =============================================================================
 
@@ -166,14 +215,14 @@ class HighRollerAgent(BaseStudentAgent):
 
 
         # closest good capsule to Pacman
-        capsule = capsule.closest()
-        print capsule
+        cap = capsule.closest(observedState, self.distancer)
+        print cap
 
 
-        if scaredGhostPresent():
+        if observedState.scaredGhostPresent():
             return mapH.getDirs(pacmanPos, closest_idx)
         else:
-            return mapH.getDirs(pacmanPos, capsule)
+            return mapH.getDirs(pacmanPos, cap)
 
 class SafeAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):

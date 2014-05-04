@@ -17,9 +17,9 @@ def xbin(value, range, bins):
     '''Divides the interval between range[0] and range[1] into equal sized
     bins, then determines in which of the bins value belongs. If value is 
     outside of range, returns the largest or smallest bin (respectively)'''
-    if x > range[1]:
+    if value >= range[1]:
     	return bins-1
-    elif x < range[0]:
+    elif value <= range[0]:
     	return 0
 
     bin_size = (range[1] - range[0]) / bins
@@ -46,23 +46,22 @@ basis.dimensions = (1,)
 
 
 # gives pacman's position, and the position of each of the ghosts
-def ghostDistance(self,observedState):
+def ghostPosition(self,observedState):
 	pacmanPosition = observedState.getPacmanPosition()
-	ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
+	ghost_positions = [ classifyGhosts.getNearestGoodGhost(observedState, self.distancer), classifyGhosts.getNearestBadGhost(observedState, self.distancer)]
 	
 	bins = 5
-	xBinner = binner( (0,observedState.layout.width), bins )	
-	yBinner = binner( (0,observedState.layout.height), bins )
+	xBinner = xbinner( (0,observedState.layout.width), bins )	
+	yBinner = xbinner( (0,observedState.layout.height), bins )
 
 	state = (xBinner(pacmanPosition[0]), yBinner(pacmanPosition[1]))
-	for gs in ghost_states[0:3]:
-		pos = gs.getPosition()
+	for pos in ghost_positions:
 		state += (xBinner(pos[0]),yBinner(pos[1]))
 	
 	return state
 
 # dimensions of output             map size   x/y  ghosts  pacman
-ghostDistance.dimensions = tuple( [   5   ] * (2 * (  3   +  1)) )
+ghostPosition.dimensions = tuple( [   5   ] * (2 * (  2   +  1)) )
 
 # -----------------------------------------------------------------------------
 
@@ -74,7 +73,7 @@ def goodBadGhostCapsuleDistances(self,observedState):
 	badGhost = classifyGhosts.getNearestBadGhost(observedState, self.distancer)
 	capsule = classifyCapsule.closest(observedState, self.distancer)
 
-	distBinner = binner( \
+	distBinner = xbinner( \
 		(0,math.sqrt(observedState.layout.width**2 + observedState.layout.width**2)), \
 		goodBadGhostCapsuleDistances.buckets )
 
@@ -84,7 +83,7 @@ def goodBadGhostCapsuleDistances(self,observedState):
 	hasCapsule = observedState.scaredGhostPresent()
 	return (goodGhostDistance,badGhostDistance,capsuleDistance,int(hasCapsule))
 
-goodBadGhostCapsuleDistances.buckets = 5
+goodBadGhostCapsuleDistances.buckets = 10
 
 # dimensions of output                            
 goodBadGhostCapsuleDistances.dimensions = \
@@ -98,8 +97,8 @@ goodBadGhostCapsuleDistances.dimensions = \
 def localNeighborhood(self, observedState):
 	radius = 4
 	pacmanPosition = observedState.getPacmanPosition()
-	xBinner = ( (pacmanPosition[0]-radius, pacmanPosition[0]+radius), buckets )
-	yBinner = ( (pacmanPosition[1]-radius, pacmanPosition[1]+radius), buckets )
+	xBinner = xbinner( (pacmanPosition[0]-radius, pacmanPosition[0]+radius), localNeighborhood.buckets )
+	yBinner = xbinner( (pacmanPosition[1]-radius, pacmanPosition[1]+radius), localNeighborhood.buckets )
 
 	goodGhost = classifyGhosts.getNearestGoodGhost(observedState, self.distancer)
 	badGhost = classifyGhosts.getNearestBadGhost(observedState, self.distancer)
@@ -162,3 +161,13 @@ def simpleActionBasisAllowedActions(self, observedState):
 
 simpleActionBasis.allowedActions = simpleActionBasisAllowedActions
 simpleActionBasis.allActions = Actions._directions.keys()
+
+# ============================================================================
+
+initializers = {}
+
+def goodBadFollowInitializer(Q):
+	pass
+
+initializers[goodBadGhostCapsuleDistances,followActionBasis] = goodBadFollowInitializer
+
