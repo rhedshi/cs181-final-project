@@ -1,5 +1,6 @@
 import itertools as it
 import re
+import random
 import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,8 +32,10 @@ def compareFinalScores(pattern, *values, **kwargs):
 
 	return combinations, scores
 
-def getFinalScores(command, n=5):
-	return [ getScores(command)[-1] for i in xrange(n)]
+def getFinalScores(command, n=5, seeds=None):
+	seeds = seeds if seeds != None else [random.randint(1,10) for i in xrange(n)]
+
+	return [ getScores(command + " -s " + str(seeds[i]))[-1] for i in xrange(n)]
 
 def plotFinalScores(values, scores, fmt=None):
 	plt.figure()
@@ -71,4 +74,5 @@ def savePlots(filename, figs):
 	for fig in figs:
 		pp.savefig(fig)
 	pp.close()
+
 
