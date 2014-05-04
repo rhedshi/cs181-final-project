@@ -9,10 +9,35 @@ def sameSign(i1, i2):
     "returns true if i1 and i2 are same sign. 0 is both pos and neg"
     return (i1 <= 0 and i2 <= 0) or (i1 >= 0 and i2 >= 0)
 
+def subTarget(pacman, target, subTarget):
+    """args: positions of pacman, target (eg. capsule), and a subTarget (eg. ghost)
+    if subTarget is on the way to target, then returns subTarget"""
+    if between(pacman, target, subTarget):
+        return subTarget
+    else:
+        return target
+
+def avoidGhostDirs(pacman, ghost):
+    """args: positions of pacman and the ghost
+    returns a list of illegal directions to avoid hitting the ghost"""
+    xDiff = ghost[0] - pacman[0]
+    yDiff = ghost[1] - pacman[1]
+
+    if (xDiff == 1 and abs(yDiff) <=1) or (xDiff == 2 and yDiff == 0):
+        dirs.append(Directions.EAST)
+    elif (xDiff == -1 and abs(yDiff) <=1) or (xDiff == -2 and yDiff == 0):
+        dirs.append(Directions.WEST)
+    elif yDiff > 0 and yDiff <=2 and xDiff == 0:
+        dirs.append(Directions.NORTH)
+    elif yDiff < 0 and yDiff >= -2 and xDiff == 0:
+        dirs.append(Directions.SOUTH)
+
+    return dirs
+
 def getDirs(pt1, pt2):
     "returns a list of possible directions to get from pt1 to pt2"
     dirs = []
-    
+
     # if pt2[1] > pt1[1]:
     #     dirs.append(Directions.NORTH)
     # elif pt2[1] < pt1[1]:
