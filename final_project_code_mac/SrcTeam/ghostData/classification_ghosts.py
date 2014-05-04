@@ -74,10 +74,9 @@ def ghost_latent_class_classifier():
 X = ghost_feature_vector
 y = ghost_latent_class
 
+# TODO: Change this to choose which method of classification and save the model
 model = linear_model.LogisticRegression().fit(X,y)
 predict = model.predict(ghost_feature_vector[0])
-print ghost_feature_vector[0]
-print int(predict[0])
 
 # Latent Class Conditional Score Regression
 
@@ -108,6 +107,7 @@ def class_conditional_score_regression():
 		print "Avg. Err: %f" % cv_err_mean
 		print "Std. Err: %f" % cv_err_std
 
+		# TODO: Change this to choose which method of classification and save the model
 		model = linear_model.BayesianRidge().fit(X,y)
 		print model.score(X,y)
 		pickle(model,'ghost_score_' + str(i))
@@ -116,29 +116,36 @@ def class_conditional_score_regression():
 # Good ghost/Bad ghost Binary Classification
 
 def ghost_binary_classifier():
+	methods = [OneVsRestClassifier(SVC(kernel='rbf')), OneVsOneClassifier(SVC(kernel='rbf')), linear_model.LogisticRegression()]
+
 	X = ghost_feature_vector
 	y = ghost_binary
 
 	kf = cross_validation.KFold(len(y),n_folds=k,shuffle=True)
 
-	print "Good ghost/Bad ghost Binary Classification"
-	print "k-fold cross-validation with %d folds" % k
-	for train,tests in kf:
+	for method in methods:
+		print str(method)
+		print "k-fold cross-validation with %d folds" % k
+		for train,tests in kf:
 
-	    X_train, y_train, X_test, y_test = X[train], y[train], X[tests], y[tests]
+		    X_train, y_train, X_test, y_test = X[train], y[train], X[tests], y[tests]
 
-	    result = linear_model.LogisticRegression().fit(X_train,y_train)
-	    preds = result.predict(X_test)
+		    result = method.fit(X_train,y_train)
+		    preds = result.predict(X_test)
 
-	    cv_err.append(1 - float(np.sum(preds == y_test)) / len(y_test))
-	    print "Err on withheld data: %f" % cv_err[-1]
+		    cv_err.append(1 - float(np.sum(preds == y_test)) / len(y_test))
+		    print "Err on withheld data: %f" % cv_err[-1]
 
-	# calculate mean, std. across folds
-	cv_err_mean, cv_err_std = np.mean(cv_err), np.std(cv_err)
+		# calculate mean, std. across folds
+		cv_err_mean, cv_err_std = np.mean(cv_err), np.std(cv_err)
 
-	print
-	print "Avg. Err: %f" % cv_err_mean
-	print "Std. Err: %f" % cv_err_std
+		print
+		print "Avg. Err: %f" % cv_err_mean
+		print "Std. Err: %f" % cv_err_std
 
+	# TODO: Change this to choose which method of classification and save the model
 	LogRegress = linear_model.LogisticRegression().fit(X,y)
 	pickle(LogRegress,'ghost_binary_classifier')
+
+# TODO: Change this to run each function
+ghost_binary_classifier()
