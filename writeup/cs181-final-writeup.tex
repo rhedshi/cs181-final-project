@@ -23,69 +23,72 @@
 \begin{document}
 \maketitle
 
-% -----------------------------------------------------------------------------
+% =============================================================================
 \section{Overview}
 
+In this project, our challenge was to develop an agent to play a variant of Pac-man, where several aspects of the game's behavior were uncertain. We were tasked with developing an agent that would accumulate as many points as possible by eating ``good'' ghosts, or by eating the ``bad'' ghost after a non-placebo capsule. However, our agent would not know \emph{a priori} which ghosts were good and which was bad, nor would it know which capsules would allow the bad ghost to be eaten (and which were placebos). Finally, Pac-man would lose half a point every turn due to hunger, and would lose a large number of points if caught by the bad ghost without having eaten a capsule.
+
+We therefore had three challenges for this assignment:
+\begin{description}
+	\item[Capsule clustering] --- 
+	\item[Ghost classification] --- 
+	\item[Agent development] --- We used reinforcement learning to attempt to train an optimal agent strategy, incorporating information from the ghost and capsule classification data. We also built several agents using hand-coded strategies that incorporated the capsule and ghost classification 
+\end{description}
+
+% =============================================================================
+\section{Capsule classification}
+
+% =============================================================================
+\section{Ghost classification}
+
+% =============================================================================
+\section{Agents}
+
 % -----------------------------------------------------------------------------
-\section{Reinforcement Learning}
+\subsection{Reinforcement Learning Agents}
 
+In order to explore whether reinforcement learning could be used to train an optimal strategy, we implemented a series of agents that performed reinforcement learning using Q-learning.
 
-
-We pursued three independent approaches to solve this 
-problem:
-
-\subsection{Q-learning}
-
-First, we implemented a the model-free ``Q-learning'' algorithm. Q-learning works
-by learning the function $Q(s,a)$ (the expected value of an action $a$ from a 
-state $s$). We begin with a uniform estimate of $Q(s,a) = 0 \forall s \forall a$.
-At each time point during epoch $t$, we plan the next action $\pi(s)$ given the 
-current state $s$, according to the following ``$\epsilon$-greedy'' policy:
-$$\pi_t(s) = \begin{cases} 
-\argmax_{a \in \mathcal{A}} Q(s,a) & \text{with probability } 1-\epsilon(t) \\
-\text{random } a \in {0,1}         & \text{with probability } \epsilon(t) 
-\end{cases}$$
-where $\epsilon(t) = 1/t$. This allows exploration of new states at early time 
-points and exploitation at later time points.
-
-Upon taking an action $a$ (during epoch $t$), recieving a reward $r$, and observing a transition from $s$
-to $s'$, we update our running estimate of $Q(s,a)$ as follows:
+Briefly, our agent begins with an estimate of $Q(s,a)$. Upon taking an action $a$ (during epoch $t$), recieving a reward $r$, and observing a transition from $s$
+to $s'$, the agent updates our running estimate of $Q(s,a)$ as follows:
 $$Q(s,a) \gets Q(s,a) + \alpha_k(s,a) \left[ (r + \gamma \max_{a' \in \mathcal{A}} Q(s', a')) - Q(s,a) \right].$$
 
-We attempted a strategy where the learning rate $\alpha_k(s,a) = 1/k$, and $k$ is the number of times we've visited state $s$ and performed action $a$. This reflects our desire to gradually reduce the rate of change of our policy (and therefore $Q$) over epochs in order to exploit the benefits of our earlier exploration. However, we had much poorer results with this strategy than one where we simply set $\alpha_k(s,a) = 0.1 \forall(s,a,k)$. This could be a consequence of the decay rate being too slow or fast, because when we varied $\alpha$ as a function of iteration rather than $k$ such that $\alpha=0.01$ after 100 epochs and $\alpha=0.001$ after 200 epochs, we saw better results. When $\alpha$ was constant at 0.01 or even smaller, the score would steadily increase for the first couple hundred epochs, and then decrease back down to 0 after that, signifying that the model of $Q$ was diverging.
+We got best results when the learning rate $\alpha$ was set to 0.01 for the first 1000 epochs, after which it was set to 0.001. The optimal value for the discount factor $\gamma$ was about 0.4; these were determined by coordinate descent. 
 
-To improve learning rates, we modified the states to reduce the dimensionality of $Q$. First, the top and bottom of the tree and monkey as separate states are redundant because the monkey and the tree gap are constant heights. Next, rather than modelling the monkey and gap position separately, we used the difference in the monkey and gap position, ignoring the absolute position of either one. While at first this may seem to allow for the monkey hitting the top and bottom of the screen, we found this not to be teh case since the monkey would try to stay near the gap, which would never be off the screen. This change allowed our score to increase significantly.
+A key challenge was determining how the many-dimensional, partially-observable game state could be discretized into a single, discrete state representation $s$. We therefore experimented with several ``basis functions'' for representing the state space. We built three different agents that utilized different basis function representations:
 
-Finally, we attempted to optimized the learning rate $\gamma$ and the number of bins into which each value was discretized. We determined each of these values by coordinate descent. The optimal value for $\gamma$ was about 0.4.  Appropriate bin sizes to balance convergence and performance within 500 epochs is around 20 bins for the height difference, and 10 bins for monkey velocity and distance from the tree.
+\begin{description}
+	\item[GhostPositionAgent] --- $s = ((p_x, p_y), (g_x, g_y), (b_x, b_y), (c_x, c_y), h)$ where $(p_x, p_y)$ is the position of Pac-man, $(g_x, g_y)$ is the position of the good ghost $(b_x, b_y)$ is the position of the bad ghost, $(c_x, c_y)$, is the position of the nearest non-placebo capsule, and $h$ is 1 if Pac-man has eaten a capsule (e.g. the bad ghost is currently scared). The positions $(p_x, p_y), (g_x, g_y), (b_x, b_y), (c_x, c_y)$ were each binned into $n$ bins, such that there were $n^{2 * 4} * 2$ possible states. This agent attempts to learn a direction to move for each configuration.
+	\item[LocalNeighborhoodAgent] --- $s = ((g_x, g_y), (b_x, b_y), (c_x, c_y), h)$. Similar to GhostPositionAgent; however, positions are stored relative to Pac-man himself. Each dimension is binned into one of $n$ values; if one of the objects is a distance of more than $r$ away from Pac-man in one dimension, it is classified in the most distant bin in that dimension. This agent attempts to reduce the effective dimensionality of the GhostPositionAgent, but maintains the directional information lost by the GoodBadCapsuleDistanceAgent. This agent attempts to learn a direction to move for each configuration.
+	\item[GoodBadCapsuleDistanceAgent] --- $s = (g, b, c, h)$ where $g$ is the distance to the nearest good ghost, $b$ is the distance to the bad ghost, $c$ is the distance to the nearest non-placebo capsule, and $h$ is 1 if Pac-man has eaten a capsule (e.g. the bad ghost is currently scared). Each of the distances $g$, $b$, and $c$ were sorted into one of $n$ bins, where $n = 5$, such that the size of the state space was $n^3 * 2$. Unlike the other two agents, this agent attempts to learn \emph{which object to pursue} (the good ghost, the bad ghost, or the capsule). Once the learner has selected the object to pursue, the agent will move in whichever legal direction minimizes the distance to the target.  
+\end{description}
 
-In the end, we are able to consistently get scores of over 100, up to over 150, after a few hundred epochs. A representative time course over several epochs is shown below. Further improvement is certainly possible by optimizing each of the parameters (bins, $\alpha$, $\gamma$) more carefully and precisely, as we only estimated the optimal parameters.
+In an attempt to improve the rate of convergence, recognizing in particular that Q-learning is much slower to propagate negative rewards than positive rewards, we implemented two learners that were ``seeded'' with initial values for the rewards for various actions:
 
-% \includegraphics[width=\textwidth]{scores_model_free.pdf}
-
-\subsection{Model-based learning}
-
-Next, we implemented the model-based learning. In this model, we are not concerned with learning which actions are good or bad, but rather which states are good or bad and how the states are affected by our actions, and we circumvent the credit assignment problem. 
-
-We keep track of the number of times a certain state $s$ is reached and action $a$ was taken in $N(s,a)$. Similarly, we keep track of the cumulative rewards for state $s$ and action $a$ in $R(s,a)$. Lastly, we keep track of the number of times state $s'$ was reached from state $s$ through action $a$ in $N(s,a,s')$. 
-
-The probability of going from state $s$ to another state $s'$ is simply $N(s,a,s')/N(s,a)$, and we can generate the transition matrix by calculating the probabilities for each combination of states.
-
-After every action, we update the policy using either value iteration or policy iteration as described above and below.
-
-\subsection{TD-value learning}
-
-Finally, we implemented temporal difference value learning. In this method, we learn a model of the value function $V(s)$, the transition model $P(s'|s,a)$, and the reward function $R(s,a)$. The transition model was learned as in the model-based approach above, where we maintained the empirical distribution. The reward function was learned by a running average, where each time we recieved a reward $r$ from taking action $a$ at state $s$ for the $k$-th time, we updated $R(s,a)$ as:
-$$R(s,a) \gets (R(s,a) \cdot k + r)/(k + 1).$$
-
-Each time we transitioned to state $s'$ from state $s$ and received reward $r$, we updated the value function according to:
-$$V(s) \gets V(s) + \alpha ((r + \gamma V(s')) - V(s)).$$
-At each step, we planned the next action $\pi(s)$ according to:
-$$\pi(s) = \argmax_{a \in \mathcal{A}} \left[ R(s,a) + \sum_{s'} P(s'|s,a) V(s') \right]$$
-where $R(s,a)$, $P(s'|s,a)$, and $V(s)$ represent our empirically-estimated values for those quantities.
-
-We are able to get scores over 30 within 1000 iterations.
+\begin{description}
+	\item[SeededGoodBadCapsuleDistanceAgent] --- Same as GoodBadCapsuleDistanceAgent; however, chasing the bad ghost without the capsule was assigned $Q = -1200$, regardless of the distance.
+	\item[SeededLocalNeighborhoodAgent] --- Same as LocalNeighborhoodAgent; however, any action which moved towards the bad ghost without the capsule was assigned $Q = -1200$ if the bad ghost was within the radius $r$ of Pac-man.
+\end{description}
 
 % -----------------------------------------------------------------------------
+\subsection{Hand-coded Agents}
+
+
+% -----------------------------------------------------------------------------
+\subsection{Agent comparison}
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{agents-finals.pdf}
+	\caption{Final scores (after 1000 game steps) for each agent (mean $\pm$ std. dev., $n = 10$ games for each agent)}
+\end{figure}
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{agents-trajectories.pdf}
+	\caption{Representative trajectories of each agents: game step vs. score.}
+\end{figure}
+
+
+% =============================================================================
 \section{Conclusion}
 
 
