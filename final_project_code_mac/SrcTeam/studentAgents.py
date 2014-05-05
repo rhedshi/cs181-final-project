@@ -152,26 +152,73 @@ class SafeAgent(BaseStudentAgent):
     def chooseAction(self, observedState):
         """
         Pacman will eat the nearest good capsule if the ghost is not scared,
-        and eat good ghosts otherwise. Along the way, he will adjust his path to
-        run into good ghosts.
+        avoiding all ghosts, and eat the closest ghost otherwise.
         """
 
         pacmanPos = observedState.getPacmanPosition()
-        ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
         legalActs = [a for a in observedState.getLegalPacmanActions()]
 
         # find the closest ghost by sorting the distances
-        goodGhost = ghosts.closestGhost(observedState, self.distancer, good=False)
+        closeGhost = ghosts.closestGhost(observedState, self.distancer, good=False)
 
         # position of closest good capsule to Pacman
         closeCapsule = capsule.closest(observedState, self.distancer)
 
         best_action = random.choice(legalActs)
         if observedState.scaredGhostPresent():
-            for dir in mapH.getDirs(pacmanPos, goodGhost):
+            # targets capsules on the way to ghosts
+            target = mapH.subTarget(pacmanPos, closeGhost, closeCapsule)
+            # chases the ghost
+            for dir in mapH.getDirs(pacmanPos, closeGhost):
                 if dir in legalActs:
                     return dir
         else:
+            # sorts out directions that lead to any close ghost
+            legalActs = [a for a in legalActs if a not in mapH.ghostDirs(pacmanPos, closeGhost)]
+            # chases the capsule
+            for dir in mapH.getDirs(pacmanPos, closeCapsule):
+                if dir in legalActs:
+                    return dir
+        return best_action
+
+class AnyGhostAgent(BaseStudentAgent):
+    def __init__(self, *args, **kwargs):
+        "arguments given with the -a command line option will be passed here"
+        pass # you probably won't need this, but just in case
+
+    def registerInitialState(self, gameState):
+        "Do any necessary initialization"
+        super(AnyGhostAgent, self).registerInitialState(gameState)
+
+    def chooseAction(self, observedState):
+        """
+        Pacman will eat the nearest good capsule if the ghost is not scared,
+        and eat good ghosts otherwise. Along the way, he will adjust his path to
+        run into good ghosts.
+        """
+
+        pacmanPos = observedState.getPacmanPosition()
+        legalActs = [a for a in observedState.getLegalPacmanActions()]
+
+        # find the closest ghost by sorting the distances
+        goodGhost = ghosts.closestGhost(observedState, self.distancer, good=True)
+        # position of closest good capsule to Pacman
+        closeCapsule = capsule.closest(observedState, self.distancer)
+
+        best_action = random.choice(legalActs)
+        if observedState.scaredGhostPresent():
+            # targets capsules along the way
+            target = mapH.subTarget(pacmanPos, goodGhost, closeCapsule)
+            for dir in mapH.getDirs(pacmanPos, target):
+                if dir in legalActs:
+                    return dir
+        else:
+            # find the closest bad ghost by sorting the distances
+            badGhost = ghosts.getNearestBadGhost(observedState, self.distancer)
+            # sorts out directions that lead to the bad ghost
+            legalActs = [a for a in legalActs if a not in mapH.ghostDirs(pacmanPos, badGhost)]
+            # targets good ghosts along the way
+            target = mapH.subTarget(pacmanPos, closeCapsule, goodGhost)
             for dir in mapH.getDirs(pacmanPos, closeCapsule):
                 if dir in legalActs:
                     return dir
@@ -196,6 +243,8 @@ class BadGhostAgent(BaseStudentAgent):
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
         legalActs = [a for a in observedState.getLegalPacmanActions()]
 
+        # find the closest ghost by sorting the distances
+        closeGhost = ghosts.closestGhost(observedState, self.distancer, good=False)
         # find the closest bad ghost by sorting the distances
         badGhost = ghosts.getNearestBadGhost(observedState, self.distancer)
 
@@ -204,10 +253,15 @@ class BadGhostAgent(BaseStudentAgent):
 
         best_action = random.choice(legalActs)
         if observedState.scaredGhostPresent():
-            for dir in mapH.getDirs(pacmanPos, badGhost):
+            # targets capsules and good ghosts on the way to the bad ghost
+            target = mapH.subTarget(pacmanPos, badGhost, closeCapsule)
+            target = mapH.subTarget(pacmanPos, target, closeGhost)
+            for dir in mapH.getDirs(pacmanPos, target):
                 if dir in legalActs:
                     return dir
         else:
+            # sorts out directions that lead to any close ghost
+            legalActs = [a for a in legalActs if a not in mapH.ghostDirs(pacmanPos, closeGhost)]
             for dir in mapH.getDirs(pacmanPos, closeCapsule):
                 if dir in legalActs:
                     return dir
@@ -223,7 +277,7 @@ class CapsuleAgent(BaseStudentAgent):
         super(CapsuleAgent, self).registerInitialState(gameState)
 
     def chooseAction(self, observedState):
-        "Pacman will eat the nearest good capsule."
+        "Pacman will eat the nearest good capsule. For testing purposes."
 
         pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
@@ -248,7 +302,7 @@ class GhostAgent(BaseStudentAgent):
         super(GhostAgent, self).registerInitialState(gameState)
 
     def chooseAction(self, observedState):
-        "Pacman will eat the nearest ghost."
+        "Pacman will eat the nearest ghost. For testing purposes."
 
         pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
@@ -273,7 +327,7 @@ class NearestBadGhostAgent(BaseStudentAgent):
         super(NearestBadGhostAgent, self).registerInitialState(gameState)
 
     def chooseAction(self, observedState):
-        "Pacman will eat the nearest bad ghost."
+        "Pacman will eat the nearest bad ghost. For testing purposes."
 
         pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods

@@ -3,7 +3,7 @@ import random
 
 def between(pt1, pt2, pt3):
     "returns true if pt3 is between pt2 and pt1"
-    return sameSign(p3[0] - pt2[0], pt2[0] - pt1[0]) and sameSign(p3[1] - pt2[1], pt2[1] - pt1[1])
+    return sameSign(pt3[0] - pt2[0], pt2[0] - pt1[0]) and sameSign(pt3[1] - pt2[1], pt2[1] - pt1[1])
 
 def sameSign(i1, i2):
     "returns true if i1 and i2 are same sign. 0 is both pos and neg"
@@ -17,11 +17,12 @@ def subTarget(pacman, target, subTarget):
     else:
         return target
 
-def avoidGhostDirs(pacman, ghost):
+def ghostDirs(pacman, ghost):
     """args: positions of pacman and the ghost
-    returns a list of illegal directions to avoid hitting the ghost"""
+    returns a list of directions that may lead to the ghost"""
     xDiff = ghost[0] - pacman[0]
     yDiff = ghost[1] - pacman[1]
+    dirs = []
 
     if (xDiff == 1 and abs(yDiff) <=1) or (xDiff == 2 and yDiff == 0):
         dirs.append(Directions.EAST)
