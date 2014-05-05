@@ -23,7 +23,7 @@ def xbin(value, range, bins):
     	return 0
 
     bin_size = (range[1] - range[0]) / bins
-    return min(max(math.floor((value - range[0]) / bin_size),0),bins-1)
+    return int(min(max(math.floor((value - range[0]) / bin_size),0),bins-1))
 
 def binner(range, bins):
 	return lambda value: bin(value, range, bins)
