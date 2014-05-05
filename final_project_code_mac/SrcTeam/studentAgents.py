@@ -154,7 +154,7 @@ class ActionBasisAgent(BaseStudentAgent):
         if((self.save_every > 0) and (self.action_count % self.save_every == 0)):
             if self.chatter: print "Saving..."
             utils.pickle(self.learner, self.learn_file)
-            
+
         # take action
         if self.chatter: print state, self.actions[action_code],
         action = self.actionBasis(observedState, self.actions[action_code])
@@ -258,6 +258,8 @@ class HighRollerAgent(BaseStudentAgent):
         else:
             return mapH.getDirs(pacmanPos, cap)
 
+# =============================================================================
+
 class SafeAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
         "arguments given with the -a command line option will be passed here"
@@ -295,6 +297,8 @@ class SafeAgent(BaseStudentAgent):
                     return dir
         return best_action
 
+# =============================================================================
+
 class BadGhostAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
         "arguments given with the -a command line option will be passed here"
@@ -307,15 +311,14 @@ class BadGhostAgent(BaseStudentAgent):
     def chooseAction(self, observedState):
         """
         Pacman will eat the nearest good capsule if the ghost is not scared,
-        and eat good ghosts otherwise. Along the way, he will adjust his path to
-        run into good ghosts.
+        and chase the scared ghost otherwise.
         """
 
         pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods
         legalActs = [a for a in observedState.getLegalPacmanActions()]
 
-        # find the closest ghost by sorting the distances
+        # find the closest bad ghost by sorting the distances
         badGhost = ghosts.getNearestBadGhost(observedState, self.distancer)
 
         # position of closest good capsule to Pacman
@@ -331,6 +334,8 @@ class BadGhostAgent(BaseStudentAgent):
                 if dir in legalActs:
                     return dir
         return best_action
+
+# =============================================================================
 
 class CapsuleAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
@@ -357,6 +362,8 @@ class CapsuleAgent(BaseStudentAgent):
                 return dir
         return best_action
 
+# =============================================================================
+
 class GhostAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
         "arguments given with the -a command line option will be passed here"
@@ -382,6 +389,8 @@ class GhostAgent(BaseStudentAgent):
                 return dir
         return best_action
 
+# =============================================================================
+
 class NearestBadGhostAgent(BaseStudentAgent):
     def __init__(self, *args, **kwargs):
         "arguments given with the -a command line option will be passed here"
@@ -392,7 +401,7 @@ class NearestBadGhostAgent(BaseStudentAgent):
         super(NearestBadGhostAgent, self).registerInitialState(gameState)
 
     def chooseAction(self, observedState):
-        "Pacman will eat the nearest ghost."
+        "Pacman will eat the nearest bad ghost."
 
         pacmanPos = observedState.getPacmanPosition()
         ghost_states = observedState.getGhostStates() # states have getPosition() and getFeatures() methods

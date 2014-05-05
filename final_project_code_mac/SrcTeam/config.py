@@ -1,5 +1,5 @@
-teamname = 'ExampleTeam'
+teamname = 'SrcTeam'
 
-members = [ ('Gerald Dean Rascoe', 'rascoe@college.harvard.edu'),
-            ('Edward May', 'edward@fas.harvard.edu'),
-            ('Geraldine Rascoe', 'geraldine@seas.harvard.edu')]
+members = [ ('Samuel Kim', 'samuelkim@college.harvard.edu'),
+            ('Casey Grun', 'caseygrun@college.harvard.edu'),
+            ('Rhed Shi', 'rhedshi@college.harvard.edu')]

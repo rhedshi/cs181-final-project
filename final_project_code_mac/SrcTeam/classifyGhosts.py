@@ -11,12 +11,12 @@ from sklearn import linear_model
 import random
 
 # scikit learn classification model objects
-ghost_binary_classifier = unpickle('SrcTeam/ghostData/ghost_binary_classifier')
-ghost_latent_class_classifier = unpickle('SrcTeam/ghostData/ghost_latent_class_classifier')
-# ghost_binary_parameters = unpickle('SrcTeam/ghostData/ghost_binary_parameters')
-# ghost_latent_class_parameters = unpickle('SrcTeam/ghostData/ghost_latent_class_parameters')
-# ghost_binary_classifier = linear_model.LogisticRegression().set_params(ghost_binary_parameters)
-# ghost_latent_class_classifier = OneVsOneClassifier(LinearSVC()).set_params(ghost_latent_class_parameters)
+# ghost_binary_classifier = unpickle('SrcTeam/ghostData/ghost_binary_classifier')
+# ghost_latent_class_classifier = unpickle('SrcTeam/ghostData/ghost_latent_class_classifier')
+ghost_binary_parameters = unpickle('SrcTeam/ghostData/ghost_binary_parameters')
+ghost_latent_class_parameters = unpickle('SrcTeam/ghostData/ghost_latent_class_parameters')
+ghost_binary_classifier = linear_model.LogisticRegression().set_params(**ghost_binary_parameters)
+ghost_latent_class_classifier = OneVsOneClassifier(LinearSVC()).set_params(**ghost_latent_class_parameters)
 
 # list of class conditional score regression objects
 ghost_class_score = [unpickle('SrcTeam/ghostData/ghost_score_' + str(x)) for x in range(4)]
