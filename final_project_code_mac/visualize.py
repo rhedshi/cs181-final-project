@@ -42,7 +42,7 @@ def plotFinalScores(values, scores, fmt=None):
 	ascores = np.array(scores).T
 	ind = np.arange(len(scores))
 	width = 0.8
-	plt.bar( ind, np.mean(ascores, axis=0), width, yerr=np.std(ascores) )
+	plt.bar( ind, np.mean(ascores, axis=0), width, yerr=np.std(ascores, axis=0) )
 	if fmt != None:
 		labels = tuple( fmt % val for val in values)
 	else:
