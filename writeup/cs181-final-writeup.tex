@@ -104,6 +104,12 @@ In an attempt to improve the rate of convergence, recognizing in particular that
 % -----------------------------------------------------------------------------
 \subsection{Hand-coded Agents}
 
+We implemented 3 different hard-coded strategies that relied on capsule clustering and ghost classification algorithms, and did not rely on training the behavior.
+\begin{description}
+	\item[SafeAgent] If there are no scared ghosts, then chases the closest non-placebo capsule, actively avoiding all ghosts along the way. If the ghost is scared, then the agent goes after any nearby ghost regardless of its classification, eating capsules along the way. 
+	\item[AnyGhostAgent] If there are no scared ghosts, then chases the closest non-placebo capsule, eating good ghosts along the way if it does not have to stray far from its path. If the ghost is scared, then the agent goes after any nearby ghost regardless of its classification, eating capsules along the way. 
+	\item[BadGhostAgent] If there are no scared ghosts, then chases the closest non-placebo capsule, actively avoiding all ghosts along the way. If the ghost is scared, then it chases the scared ghost, eating capsules and good ghosts along the way if it does not have to stray far from its path.
+\end{description}
 
 % -----------------------------------------------------------------------------
 \subsection{Agent comparison}
