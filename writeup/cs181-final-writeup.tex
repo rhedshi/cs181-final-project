@@ -30,13 +30,44 @@ In this project, our challenge was to develop an agent to play a variant of Pac-
 
 We therefore had three challenges for this assignment:
 \begin{description}
-	\item[Capsule clustering] --- 
+	\item[Capsule clustering] --- Because the capsule data were not labelled nor the distributions of capsule feature vectors known, we used unsupervised clustering techniques to group cluters tegoether such that we can identify placebo versus non-placebo capsules.
 	\item[Ghost classification] --- 
 	\item[Agent development] --- We used reinforcement learning to attempt to train an optimal agent strategy, incorporating information from the ghost and capsule classification data. We also built several agents using hand-coded strategies that incorporated the capsule and ghost classification 
 \end{description}
 
 % =============================================================================
 \section{Capsule classification}
+
+The features vectors of the capsules have only 3 features, so the first step we took was plotting the feature vectors in 3 dimensions to visualize the data and hopefully gain an intuitive understanding of the data.
+
+\begin{figure}[h]
+	\includegraphics[width=10cm]{capsuleCluster.png}
+	\caption{Plot of the capsule feature vectors.}
+	\label{fig:capsules}
+\end{figure}
+
+As we can see from Figure ~\ref{fig:capsules}, the capsules seem to be split into 3 clusters, each of which resemble a Gaussian distribution. Additionally, plotting the labeled capsules using the getGoodCapsuleExamples() function shows that all the examples for a particular random seed come from a single cluster, confirming our intuition. We test both K-Means++ and Gaussian Mixture Models to cluster the data.
+
+\begin{figure}
+	\begin{subfigure}{\textwidth}
+		\centering		
+		\includegraphics[width=0.8\textwidth]{capsule_k_means_plot.png}
+		\caption{K-Means++.}
+	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\centering
+		\includegraphics[width=0.8\textwidth]{capsule_gauss_plot.png}
+		\caption{Gaussian Mixture Models}
+	\end{subfigure}
+	\caption{Clustering of capsule data with 3 clusters. Colors correspond to labels, which are ordered arbitrarily.}
+	\label{fig:clustering}
+\end{figure}
+
+We see the results of clustering in Figure ~\ref{fig:clustering} using both K-Means++ and Gaussian Mixture Models. 
+The K-Means++ algorithm runs multiple times with random initializations, choosing the configuration which has the lowest error as the final answer. For the K-Means++, while most of the points seem to be in their respective clusters, we see a couple points in the center cluster that are colored as green, although visually they seem like they should be colored red. This is the result of the K-Means error function only considering distance to a cluster mean, rather than distance to each other. 
+The Gaussian Mixture Models are able to use non-diagonal covariance matrices, which allow more flexibility in the distribution of points within each cluster. Thus, from the figure, it appears that all the points have been clustered correctly.
+
+To decide if a given capsule is a placebo or not, we test if it is in the same cluster as the majority of the example good capsules given by the getGoodCapsuleExamples() function.
 
 % =============================================================================
 \section{Ghost classification}
@@ -73,6 +104,12 @@ In an attempt to improve the rate of convergence, recognizing in particular that
 % -----------------------------------------------------------------------------
 \subsection{Hand-coded Agents}
 
+We implemented 3 different hard-coded strategies that relied on capsule clustering and ghost classification algorithms, and did not rely on training the behavior.
+\begin{description}
+	\item[SafeAgent] If there are no scared ghosts, then chases the closest non-placebo capsule, actively avoiding all ghosts along the way. If the ghost is scared, then the agent goes after any nearby ghost regardless of its classification, eating capsules along the way. 
+	\item[AnyGhostAgent] If there are no scared ghosts, then chases the closest non-placebo capsule, eating good ghosts along the way if it does not have to stray far from its path. If the ghost is scared, then the agent goes after any nearby ghost regardless of its classification, eating capsules along the way. 
+	\item[BadGhostAgent] If there are no scared ghosts, then chases the closest non-placebo capsule, actively avoiding all ghosts along the way. If the ghost is scared, then it chases the scared ghost, eating capsules and good ghosts along the way if it does not have to stray far from its path.
+\end{description}
 
 % -----------------------------------------------------------------------------
 \subsection{Agent comparison}
