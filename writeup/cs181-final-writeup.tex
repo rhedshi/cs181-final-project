@@ -114,19 +114,32 @@ We implemented 3 different hard-coded strategies that relied on capsule clusteri
 % -----------------------------------------------------------------------------
 \subsection{Agent comparison}
 
+Figs. \ref{fig:agents-finals} and \ref{fig:agents-trajectories} compare the performance of the various agents that we implemented, as well as two test agents that serve as controls:
+\begin{description}
+	\item[CapsuleAgent] Always pursues the nearest capsule.
+	\item[GhostAgent] Always pursues the bad ghost (regardless of capsule status).
+\end{description} 
+
+As can be seen from Fig. \ref{fig:agents-finals}, the three hand-coded agents performed much better than the reinforcement-learning agents (although the seeded agents did better than the non-seeded reinforcement learning agents). We suspect that further tuning of the learning rate may have helped the reinforcement learning agents converge to an optimal strategy. Another problem was that our ghost-classification performance improved significantly very close to the deadline---before we were able to re-train our reinforcement agents. Therefore the reinforcement agents may have evolved strategies that were overly conservative due to spurious punishments when pursuing the bad ghost (that had been mis-classified as the good ghost).
+
+Examining Fig. \ref{fig:agents-trajectories} provides some insights into the failure modes of the poorly-performing agents. It can be seen that poorly-perfoming agents do not simply die of attrition, but repeatedly experience 1200-point losses (presumably due to bad ghost encounters). This seems to suggest that either: the bad ghost is being repeatedly mis-classified, the agents are pursuing the bad ghost (despite not having a capsule---presumably due to a failure to propagate negative reward), or the agent, in pursuit of another ghost or capsule, accidentally runs into the bad ghost.
+
 \begin{figure}
 	\includegraphics[width=\textwidth]{agents-finals.pdf}
 	\caption{Final scores (after 1000 game steps) for each agent (mean $\pm$ std. dev., $n = 10$ games for each agent)}
+	\label{fig:agents-finals}
 \end{figure}
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{agents-trajectories.pdf}
 	\caption{Representative trajectories of each agents: game step vs. score.}
+	\label{fig:agents-trajectories}
 \end{figure}
 
 
 % =============================================================================
 \section{Conclusion}
 
+Ultimately, our most successful approaches were the hand-coded strategies. This is somewhat unsurprisingly, as those strategies were able to incorporate the information gleaned by the offline learning techniques, but pursued a nearly-optimal strategy based on knowledge of the game mechanics (something from which the reinforcement learning agents did not benefit). Improvements in the reinforcement learning agents' performance may have been achieved by tweaking the learning rate and the discretization parameters. Further improvements in the hand-coded strategies could be obtained by performing class-conditional regression on the ghosts' feature vectors in order to predict the ``juiciness'' of each ghost (and therefore make more considered and less-opportunistic decisions about which ghost/capsule to pursue). Similarly, probabilistic classification of the capsules could have been incorporated into decisionmaking. This type of decisionmaking may be better-suited to continuous formulations of reinforcement learning. These would be appropriate avenues for future study.
 
 \end{document}
