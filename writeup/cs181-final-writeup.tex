@@ -12,6 +12,8 @@
 \usepackage{commath}
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 
+\usepackage{verbatim}
+
 % Declare commands
 \newcommand{\mat}[1]{\mathbf{#1}}
 \DeclareMathOperator*{\argmax}{arg\,max}
@@ -83,6 +85,26 @@ We used three major approaches to classify the ghosts and compared them to each 
 
 To test our approach we used 10-fold cross validation on a data set with around 4000 data points. For our cross validation, we randomly split the data set each time into 10 equally sized sets and trained on 9 out of 10 data sets and tested on 1 out of 10 data set. 
 
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering		
+		\includegraphics[width=\textwidth]{ghost_latent_class.png}
+		\caption{Latent class classification.}
+		\label{fig:latent_class}
+	\end{subfigure} %
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{binary_classification.png}
+		\caption{Binary classification for good and bad ghosts.}
+		\label{fig:binary}
+	\end{subfigure}
+	\caption{Ghost classification using three methods: one vs. rest, one vs. one, and logistic regression.}
+	\label{fig:classification}
+\end{figure}
+
+\begin{comment}
 \begin{table}[b]
 \caption{10-fold cross validation for classification of latent class of the ghosts on data set using one vs. rest classifier, one vs. one classifier, and logistic regression.}
 \centering
@@ -107,10 +129,11 @@ Std. & 0.024949 & 0.016554 & 0.011468 \\
 \end{tabular}
 \label{table:latent_class}
 \end{table}
+\end{comment}
 
 \subsection{Latent Class}
 
-For our latent class ghost classification, we used one vs. rest, one vs. one, and logistic regression. In one vs. rest we come up with a classifier for each latent class compared to the rest of the data. In one vs. one we come up with a classifier for each pair of latent classes to differentiate them. For both of these classification strategies, we used a linear SVC (support vector classification) from the scikit learn svm package. This mean essentially means that the boundaries used in the classification methods are linear. In addition, we also used logistic regression as a method. As we can see in Table~\ref{table:latent_class}, the one vs. one classifier using linear SVC performed the best on our cross validation platform followed by logistic regression. The one vs. one classifier with linear SVC had an average of 85\% accuracy.
+For our latent class ghost classification, we used one vs. rest, one vs. one, and logistic regression. In one vs. rest we come up with a classifier for each latent class compared to the rest of the data. In one vs. one we come up with a classifier for each pair of latent classes to differentiate them. For both of these classification strategies, we used a linear SVC (support vector classification) from the scikit learn svm package. This mean essentially means that the boundaries used in the classification methods are linear. In addition, we also used logistic regression as a method. As we can see in Figure~\ref{fig:latent_class}, the one vs. one classifier using linear SVC performed the best on our cross validation platform followed by logistic regression. The one vs. one classifier with linear SVC had an average of 85\% accuracy.
 
 \subsection{Binary Classification}
 
@@ -118,6 +141,7 @@ For our binary classification of good ghosts and bad ghosts, we simply modified 
 
 $$ K(x,x') = \text{exp}\left(-\frac{|| x - x' ||_2^2}{2\sigma^2}\right) $$
 
+\begin{comment}
 \begin{table}[b]
 \caption{10-fold cross validation for binary classification of good ghosts and bad ghosts on data set using one vs. rest classifier, one vs. one classifier, and logistic regression.}
 \centering
@@ -142,16 +166,25 @@ Std. & 0.003289 & 0.003289 & 0.05053 \\
 \end{tabular}
 \label{table:binary}
 \end{table}
+\end{comment}
 
-As we can see in Table~\ref{table:binary}, dramatically improved the performance of both one vs. one and one vs. rest classification. Logistic regression on this binary classification problem also improved from before. The best classification method was a tie between the one vs. one and one vs. rest method with about 97\% accuracy.
+As we can see in Figure~\ref{table:binary}, dramatically improved the performance of both one vs. one and one vs. rest classification. Logistic regression on this binary classification problem also improved from before. The best classification method was a tie between the one vs. one and one vs. rest method with about 97\% accuracy.
 
 % =============================================================================
 \section{Score Regression}
 
 Given that we are able to classify ghosts into their latent class, we decided to do some sort of linear regression on the scores conditioned on the latent class of the ghost. Thus, we split the data set into each of the latent classes for good ghosts (the score for the bad ghost with latent class 5 is already determined as +1200 or -1000 by the rules of the game). 
 
-As we can see from Table~\ref{table:score}, the results are mixed with the most accurate score regression for Latent Class 2 with 89\% accuracy and the least accurate score regression for Latent Class 0 with 48\% accuracy.
+As we can see from Figure~\ref{fig:score}, the results are mixed with the most accurate score regression for Latent Class 2 with 89\% accuracy and the least accurate score regression for Latent Class 0 with 48\% accuracy.
 
+\begin{figure}[b]
+	\centering
+	\includegraphics[width=0.5\textwidth]{score_regression.png}
+	\caption{Latent class conditional score regression using Bayesian ridge regression.}
+	\label{fig:score}
+\end{figure}
+
+\begin{comment}
 \begin{table}[t]
 \caption{10-fold cross validation latent class conditional score regression on ghosts.}
 \centering
@@ -176,6 +209,7 @@ Std. & 0.037151 & 0.13359 & 0.187379 & 0.19308 \\
 \end{tabular}
 \label{table:score}
 \end{table}
+\end{comment}
 
 \subsection{Bayesian Ridge Regression}
 
