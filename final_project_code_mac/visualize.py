@@ -24,17 +24,20 @@ def compareScores(pattern, *values):
 
 def compareFinalScores(pattern, *values, **kwargs):
 	n = kwargs['n'] if 'n' in kwargs else 5
+	seeds = kwargs['seeds'] if 'seeds' in kwargs else None
 	scores = list()
 	combinations = list(it.product(*values))
 	for val in combinations:
 		cmd = pattern % val
-		scores.append(getFinalScores(cmd, n))
+		print '--------------------------------------------------------------------------------'
+		print cmd
+		scores.append(getFinalScores(cmd, n=n, seeds=seeds))
 
 	return combinations, scores
 
 def getFinalScores(command, n=5, seeds=None):
 	seeds = seeds if seeds != None else [random.randint(1,10) for i in xrange(n)]
-
+	assert len(seeds) == n
 	return [ getScores(command + " -s " + str(seeds[i]))[-1] for i in xrange(n)]
 
 def plotFinalScores(values, scores, fmt=None):
@@ -42,6 +45,8 @@ def plotFinalScores(values, scores, fmt=None):
 	ascores = np.array(scores).T
 	ind = np.arange(len(scores))
 	width = 0.8
+	ax = plt.subplot(111)
+	ax.set_color_cycle(["#ff4040", "#ff6600", "#ffb380", "#ffaa00", "#ffee00", "#88ff00", "#d9ffbf", "#80ffb2", "#80fff6", "#40d9ff", "#00aaff", "#bfeaff", "#4073ff", "#bfbfff", "#6600ff", "#d580ff", "#ff00ee", "#ff40a6", "#ffbfe1", "#ff8091"])
 	plt.bar( ind, np.mean(ascores, axis=0), width, yerr=np.std(ascores, axis=0) )
 	if fmt != None:
 		labels = tuple( fmt % val for val in values)
@@ -55,6 +60,7 @@ def plotFinalScores(values, scores, fmt=None):
 def plotScores(values, scores, fmt=None):
 	plt.figure()
 	ax = plt.subplot(111)
+	ax.set_color_cycle(["#ff4040", "#ff6600", "#ffb380", "#ffaa00", "#ffee00", "#88ff00", "#d9ffbf", "#80ffb2", "#80fff6", "#40d9ff", "#00aaff", "#bfeaff", "#4073ff", "#bfbfff", "#6600ff", "#d580ff", "#ff00ee", "#ff40a6", "#ffbfe1", "#ff8091"])
 	plt.plot(np.array(scores).T)
 	if fmt != None:
 		labels = tuple( fmt % val for val in values)

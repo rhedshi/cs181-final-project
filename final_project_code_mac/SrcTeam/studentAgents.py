@@ -473,4 +473,4 @@ class NearestBadGhostAgent(BaseStudentAgent):
 # =============================================================================
 
 # Set the exported agent here
-SrcTeamAgent = ActionBasisAgent
+SrcTeamAgent = SafeAgent
