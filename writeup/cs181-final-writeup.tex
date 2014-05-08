@@ -272,7 +272,7 @@ As can be seen from Fig. \ref{fig:agents-finals}, the three hand-coded agents pe
 
 Examining Fig. \ref{fig:agents-trajectories} provides some insights into the failure modes of the poorly-performing agents. It can be seen that poorly-perfoming agents do not simply die of attrition, but repeatedly experience 1000-point losses (presumably due to bad ghost encounters). This seems to suggest that either: the bad ghost is being repeatedly mis-classified, the agents are pursuing the bad ghost (despite not having a capsule---presumably due to a failure to propagate negative reward), or the agent, in pursuit of another ghost or capsule, accidentally runs into the bad ghost.
 
-Most of the failure modes of the hard-coded strategy ghosts had to do with poor path-finding, as we had only implemented a simple behavior to move towards the target when legal and make a random move otherwise, rather than actively routing around obstacles and bad ghosts. This was especially detrimental in "local minima" when the bad ghost would hover near the good capsule.
+Most of the failure modes of the hard-coded strategy ghosts had to do with poor path-finding, as we had only implemented a simple behavior to move towards the target when legal and make a random move otherwise, rather than actively routing around obstacles and bad ghosts. This was especially detrimental in ``local minima'' when the bad ghost would hover near the good capsule.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{agents-finals.pdf}
