@@ -172,13 +172,15 @@ As shown in Figure~\ref{fig:binary}, this dramatically improved the performance 
 
 Given that we were able to classify ghosts into their latent class, we decided to perform linear regression on the scores conditioned on the latent class of the ghost. Thus, we split the data set into each of the latent classes for good ghosts (the score for the bad ghost with latent class 5 is already determined as +1200 or -1000 by the rules of the game). 
 
-As we can see from Figure~\ref{fig:score}, the results are mixed with the most accurate predictions for Latent Class 2 and the least accurate predictions for Latent Class 0. The coefficients of determination shown in the figure are given by
+As we can see from Figure~\ref{fig:score}, the results are mixed with the most accurate predictions for Latent Class 2 and the least accurate predictions for Latent Class 0. The coefficients of determination ($R^2$) shown in the figure are given by:
 
-$$ 1 - \frac{\text{sum of squares of residuals}}{\text{sum of square of totals}} $$ 
+$$ 1 - \frac{\text{residual sum of squares}}{\text{total sum of squares}} = 1 - \frac{\sum_i (y_i - x_i w)^2}{\sum_i (y_i - \bar{y}_i)^2}$$ 
+
+where $x_i w_i$ represents a predicted value for some $y_i$, based on a feature vector $x_i$ and a weight vector $w$.
 
 \begin{figure}[b]
 	\centering
-	\includegraphics[width=0.5\textwidth]{score_regression.png}
+	\includegraphics[width=0.7\textwidth]{score_regression.png}
 	\caption{Latent class conditional score regression using Bayesian ridge regression.}
 	\label{fig:score}
 \end{figure}
