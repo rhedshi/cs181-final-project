@@ -172,7 +172,9 @@ As shown in Figure~\ref{fig:binary}, this dramatically improved the performance 
 
 Given that we were able to classify ghosts into their latent class, we decided to perform linear regression on the scores conditioned on the latent class of the ghost. Thus, we split the data set into each of the latent classes for good ghosts (the score for the bad ghost with latent class 5 is already determined as +1200 or -1000 by the rules of the game). 
 
-As we can see from Figure~\ref{fig:score}, the results are mixed with the most accurate predictions for Latent Class 2 with 89\% accuracy and the least accurate score predictions for Latent Class 0 with 48\% accuracy.
+As we can see from Figure~\ref{fig:score}, the results are mixed with the most accurate predictions for Latent Class 2 and the least accurate predictions for Latent Class 0. The coefficients of determination shown in the figure are given by
+
+$$ 1 - \frac{\text{sum of squares of residuals}}{\text{sum of square of totals}} $$ 
 
 \begin{figure}[b]
 	\centering
@@ -268,17 +270,17 @@ Figs. \ref{fig:agents-finals} and \ref{fig:agents-trajectories} compare the perf
 	\item[GhostAgent] Always pursues the bad ghost (regardless of capsule status).
 \end{description} 
 
-As can be seen from Fig. \ref{fig:agents-finals}, the three hand-coded agents performed much better than the reinforcement-learning agents (although the seeded agents did better than the non-seeded reinforcement learning agents). We suspect that further tuning of the learning rate may have helped the reinforcement learning agents converge to an optimal strategy. Another problem was that our ghost-classification performance improved significantly very close to the deadline---before we were able to re-train our reinforcement agents. Therefore the reinforcement agents may have evolved strategies that were overly conservative due to spurious punishments when pursuing the bad ghost (that had been mis-classified as the good ghost).
-
-Examining Fig. \ref{fig:agents-trajectories} provides some insights into the failure modes of the poorly-performing agents. It can be seen that poorly-perfoming agents do not simply die of attrition, but repeatedly experience 1000-point losses (presumably due to bad ghost encounters). This seems to suggest that either: the bad ghost is being repeatedly mis-classified, the agents are pursuing the bad ghost (despite not having a capsule---presumably due to a failure to propagate negative reward), or the agent, in pursuit of another ghost or capsule, accidentally runs into the bad ghost.
-
-Most of the failure modes of the hard-coded strategy ghosts had to do with poor path-finding, as we had only implemented a simple behavior to move towards the target when legal and make a random move otherwise, rather than actively routing around obstacles and bad ghosts. This was especially detrimental in ``local minima'' when the bad ghost would hover near the good capsule.
-
 \begin{figure}
 	\includegraphics[width=\textwidth]{agents-finals.pdf}
 	\caption{Final scores (after 1000 game steps) for each agent (mean $\pm$ std. dev., $n = 10$ games for each agent)}
 	\label{fig:agents-finals}
 \end{figure}
+
+As can be seen from Fig. \ref{fig:agents-finals}, the three hand-coded agents performed much better than the reinforcement-learning agents (although the seeded agents did better than the non-seeded reinforcement learning agents). We suspect that further tuning of the learning rate may have helped the reinforcement learning agents converge to an optimal strategy. Another problem was that our ghost-classification performance improved significantly very close to the deadline---before we were able to re-train our reinforcement agents. Therefore the reinforcement agents may have evolved strategies that were overly conservative due to spurious punishments when pursuing the bad ghost (that had been mis-classified as the good ghost).
+
+Examining Fig. \ref{fig:agents-trajectories} provides some insights into the failure modes of the poorly-performing agents. It can be seen that poorly-perfoming agents do not simply die of attrition, but repeatedly experience 1000-point losses (presumably due to bad ghost encounters). This seems to suggest that either: the bad ghost is being repeatedly mis-classified, the agents are pursuing the bad ghost (despite not having a capsule---presumably due to a failure to propagate negative reward), or the agent, in pursuit of another ghost or capsule, accidentally runs into the bad ghost.
+
+Most of the failure modes of the hard-coded strategy ghosts had to do with poor path-finding, as we had only implemented a simple behavior to move towards the target when legal and make a random move otherwise, rather than actively routing around obstacles and bad ghosts. This was especially detrimental in ``local minima'' when the bad ghost would hover near the good capsule.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{agents-trajectories.pdf}

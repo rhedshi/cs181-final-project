@@ -13,18 +13,18 @@ N3 = 3
 avg3 = (0.97076, 0.97076, 0.935399)
 std3 = (0.003289, 0.003289, 0.05053)
 
-ind = np.arange(N3)  # the x locations for the groups
+ind = np.arange(N2)  # the x locations for the groups
 width = 0.35       # the width of the bars
 
 fig, ax = plt.subplots()
-rects1 = ax.bar(ind + width/2, avg3, width, color='green', yerr=std3)
+rects1 = ax.bar(ind + width/2, avg2, width, color='green', yerr=std2)
 
 # add some
-ax.set_ylabel('Percent Accuracy')	
-ax.set_title('Binary Classification')
+ax.set_ylabel('Coefficient of Determination (R^2)')	
+ax.set_title('Score Regression')
 ax.set_xticks(ind+width)
-ax.set_xticklabels( ('One vs. Rest', 'One vs. One', 'Logistic Regression') )
-# ax.set_xticklabels( ('Class 0', 'Class 1', 'Class 2', 'Class 3') )
+# ax.set_xticklabels( ('One vs. Rest', 'One vs. One', 'Logistic Regression') )
+ax.set_xticklabels( ('Class 0', 'Class 1', 'Class 2', 'Class 3') )
 
-plt.savefig('binary_classification.png')
+plt.savefig('score_regression.png')
 plt.show()
