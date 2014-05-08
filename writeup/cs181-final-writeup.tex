@@ -49,7 +49,7 @@ The features vectors of the capsules have only 3 features, so the first step we 
 	\label{fig:capsules}
 \end{figure}
 
-As we can see from Figure ~\ref{fig:capsules}, the capsules seem to be split into 3 clusters, each of which resemble a Gaussian distribution. Additionally, plotting the labeled capsules using the getGoodCapsuleExamples() function shows that all the examples for a particular random seed come from a single cluster, confirming our intuition. We test both K-Means++ and Gaussian Mixture Models to cluster the data.
+As we can see from Figure ~\ref{fig:capsules}, the capsules seem to be split into 3 clusters, each of which resemble a Gaussian distribution. Additionally, plotting the labeled capsules using the \texttt{getGoodCapsuleExamples()} function shows that all the examples for a particular random seed come from a single cluster, confirming our intuition. We test both K-Means++ and Gaussian Mixture Models to cluster the data.
 
 \begin{figure}
 	\begin{subfigure}{\textwidth}
@@ -66,24 +66,22 @@ As we can see from Figure ~\ref{fig:capsules}, the capsules seem to be split int
 	\label{fig:clustering}
 \end{figure}
 
-We see the results of clustering in Figure ~\ref{fig:clustering} using both K-Means++ and Gaussian Mixture Models. 
-The K-Means++ algorithm runs multiple times with random initializations, choosing the configuration which has the lowest error as the final answer. For the K-Means++, while most of the points seem to be in their respective clusters, we see a couple points in the center cluster that are colored as green, although visually they seem like they should be colored red. This is the result of the K-Means error function only considering distance to a cluster mean, rather than distance to each other. 
-The Gaussian Mixture Models are able to use non-diagonal covariance matrices, which allow more flexibility in the distribution of points within each cluster. Thus, from the figure, it appears that all the points have been clustered correctly.
+Figure ~\ref{fig:clustering} shows the results of clustering using both K-Means++ and Gaussian Mixture Models. 
+The K-Means++ algorithm runs multiple times with random initializations, choosing the configuration that has the lowest error as the final answer. For the K-Means++, most of the points seem to be in their respective clusters, but we see several points in the center cluster that are colored as green, although visually they seem like they should be colored red. This is because the K-Means error function only considers distance to a cluster mean, rather than distance to other cluster points. 
+Gaussian Mixture Models are able to use non-diagonal covariance matrices, which allow more flexibility in the distribution of points within each cluster. Thus, from the figure, it appears that all the points have been clustered correctly.
 
-To decide if a given capsule is a placebo or not, we test if it is in the same cluster as the majority of the example good capsules given by the getGoodCapsuleExamples() function.
+To decide if a given capsule is a placebo or not, we test if it is in the same cluster as the majority of the example good capsules given by the \texttt{getGoodCapsuleExamples()} function.
 
 \pagebreak
 
 % =============================================================================
 \section{Ghost classification}
 
-The feature vectors for the ghosts are 13-dimensional. The data sets generated gave feature vectors paired with the ghost latent class, the score, and the quadrant. One of the first things we did was to classify the latent class of the ghosts based on their feature vectors. This would give us further information for creating a strategy for the game. 
+The feature vectors for the ghosts are 13-dimensional. The data sets generated gave feature vectors paired with the ghost latent class, the score, and the quadrant. First, we tried to determine the latent class of the ghosts based on their feature vectors (multi-classification). Next we tried separately to simply classify the ghosts into good or bad (binary classification). By definition, having a latent class of 5 meant the ghost was bad and having a latent class of 0, 1, 2, or 3 meant the ghost was good. However, we hypothesized that the binary classification would be (computationally) easier, and may be the only necessary information for some agent strategies.
 
-Next we tried to simply classify the ghosts into good or bad. By definition, having a latent class of 5 meant the ghost was bad and having a latent class of 0, 1, 2, or 3 meant the ghost was good.
+We used three major approaches to classify the ghosts and compared them to each other: one vs. rest, one vs. one, and logistic regression. These were taken from the scikit-learn \texttt{multiclass} and \texttt{linear\_model} packages.
 
-We used three major approaches to classify the ghosts and compared them to each other: one vs. rest, one vs. one, and logistic regression. These were taken from the scikit learn multiclass and linear\_model packages.
-
-To test our approach we used 10-fold cross validation on a data set with around 4000 data points. For our cross validation, we randomly split the data set each time into 10 equally sized sets and trained on 9 out of 10 data sets and tested on 1 out of 10 data set. 
+To test our approach, we used 10-fold cross validation on a data set with around 4000 data points. For our cross validation, we randomly split the data set each time into 10 equally sized sets and trained on 9 out of 10 data sets and tested on 1 out of 10 data set. 
 
 
 \begin{figure}
@@ -133,13 +131,12 @@ Std. & 0.024949 & 0.016554 & 0.011468 \\
 
 \subsection{Latent Class}
 
-For our latent class ghost classification, we used one vs. rest, one vs. one, and logistic regression. In one vs. rest we come up with a classifier for each latent class compared to the rest of the data. In one vs. one we come up with a classifier for each pair of latent classes to differentiate them. For both of these classification strategies, we used a linear SVC (support vector classification) from the scikit learn svm package. This mean essentially means that the boundaries used in the classification methods are linear. In addition, we also used logistic regression as a method. As we can see in Figure~\ref{fig:latent_class}, the one vs. one classifier using linear SVC performed the best on our cross validation platform followed by logistic regression. The one vs. one classifier with linear SVC had an average of 85\% accuracy.
+For our latent class ghost classification, we used one vs. rest, one vs. one, and logistic regression strategies. In one vs. rest we come up with a classifier for each latent class compared to the rest of the data. In one vs. one we come up with a classifier for each pair of latent classes to differentiate them. For both of these classification strategies, we used a linear SVC (support vector classification) from the scikit-learn \texttt{svm} package, as well as logistic regression from the \texttt{linear\_model} package. As shown in Figure~\ref{fig:latent_class}, the one vs. one classifier using linear SVC performed the best on our cross validation platform, followed by logistic regression. The one vs. one classifier with linear SVC had an average of 85\% accuracy.
 
 \subsection{Binary Classification}
 
-For our binary classification of good ghosts and bad ghosts, we simply modified our data set such that all ghosts with latent class 5 were relabeled as 1, and all ghosts with latent classes 0, 1, 2, or 3 were relabeled as 0. Then we applied one vs. one, one vs. rest, and logistic regression. However, this time instead of using linear SVC as the classification boundary, we used the regular SVC with a radial basis function kernel
-
-$$ K(x,x') = \text{exp}\left(-\frac{|| x - x' ||_2^2}{2\sigma^2}\right) $$
+For our binary classification of good ghosts and bad ghosts, we simply modified our data set such that all ghosts with latent class 5 were relabeled as 1, and all ghosts with latent classes 0, 1, 2, or 3 were relabeled as 0. Then we applied one vs. one, one vs. rest, and logistic regression. However, this time instead of using linear SVC as the classification boundary, we used the regular SVC with a radial basis function kernel:
+$$ K(x,x') = \text{exp}\left(-\frac{|| x - x' ||_2^2}{2\sigma^2}\right).$$
 
 \begin{comment}
 \begin{table}[b]
@@ -168,14 +165,14 @@ Std. & 0.003289 & 0.003289 & 0.05053 \\
 \end{table}
 \end{comment}
 
-As we can see in Figure~\ref{table:binary}, dramatically improved the performance of both one vs. one and one vs. rest classification. Logistic regression on this binary classification problem also improved from before. The best classification method was a tie between the one vs. one and one vs. rest method with about 97\% accuracy.
+As shown in Figure~\ref{table:binary}, this dramatically improved the performance of both one vs. one and one vs. rest classification. Logistic regression on this binary classification problem also improved from before. The best classification method was a tie between the one vs. one and one vs. rest method with about 97\% accuracy.
 
 % =============================================================================
 \section{Score Regression}
 
-Given that we are able to classify ghosts into their latent class, we decided to do some sort of linear regression on the scores conditioned on the latent class of the ghost. Thus, we split the data set into each of the latent classes for good ghosts (the score for the bad ghost with latent class 5 is already determined as +1200 or -1000 by the rules of the game). 
+Given that we are able to classify ghosts into their latent class, we decided to perform linear regression on the scores conditioned on the latent class of the ghost. Thus, we split the data set into each of the latent classes for good ghosts (the score for the bad ghost with latent class 5 is already determined as +1200 or -1000 by the rules of the game). 
 
-As we can see from Figure~\ref{fig:score}, the results are mixed with the most accurate score regression for Latent Class 2 with 89\% accuracy and the least accurate score regression for Latent Class 0 with 48\% accuracy.
+As we can see from Figure~\ref{fig:score}, the results are mixed with the most accurate predictions for Latent Class 2 with 89\% accuracy and the least accurate score predictions for Latent Class 0 with 48\% accuracy.
 
 \begin{figure}[b]
 	\centering
@@ -213,23 +210,18 @@ Std. & 0.037151 & 0.13359 & 0.187379 & 0.19308 \\
 
 \subsection{Bayesian Ridge Regression}
 
-We used a Bayesian ridge regression to estimate the juiciness score of the ghosts. Bayesian ridge regression is a probabilistic model on ridge regression which minimizes the penalized residual sum of squares
-
-$$ \min_w ||Xw - y||_2^2 + \alpha||w||_2^2 $$
-
-where $\alpha$ is the complexity parameter or regularization parameter. The probabilistic model for the Bayesian ridge regression assumes that $y$ is a Gaussian distributed around $Xw$
-
+We used Bayesian ridge regression to estimate the juiciness score of the ghosts. Bayesian ridge regression is a probabilistic model on ridge regression which minimizes the penalized residual sum of squares:
+$$ \min_w ||Xw - y||_2^2 + \alpha||w||_2^2,$$
+where $\alpha$ is the complexity parameter or regularization parameter. The probabilistic model for the Bayesian ridge regression assumes that $y$ is a Gaussian distributed around a mean $Xw$:
 $$ p(y | X, w, \alpha) = \mathcal{N}(y  | Xw, \alpha) $$ 
-
 with the prior for the $w$ is given by
-
 $$ p(w | \lambda) = \mathcal{N}(w | 0, \lambda^{-1}\mathbb{I_p}) $$
-
 and the prior distribution for $\alpha$ and $\lambda$ given by gamma distributions. We used default values for $\alpha_1 = \alpha_2 = \lambda_1 = \lambda_2 = 1 \times 10^{-6}$.
-
 
 % =============================================================================
 \section{Agents}
+
+We implemented several agents---some took advantage of reinforcement learning, while some employed hand-coded strategies. We did not have time to incorporate the ghost ``juiciness'' regression results into any of these strategies, but the agents all drew upon the capsule clustering and ghost classification results described above.
 
 % -----------------------------------------------------------------------------
 \subsection{Reinforcement Learning Agents}
@@ -240,7 +232,7 @@ Briefly, our agent begins with an estimate of $Q(s,a)$. Upon taking an action $a
 to $s'$, the agent updates our running estimate of $Q(s,a)$ as follows:
 $$Q(s,a) \gets Q(s,a) + \alpha_k(s,a) \left[ (r + \gamma \max_{a' \in \mathcal{A}} Q(s', a')) - Q(s,a) \right].$$
 
-We got best results when the learning rate $\alpha$ was set to 0.01 for the first 1000 epochs, after which it was set to 0.001. The optimal value for the discount factor $\gamma$ was about 0.4; these were determined by coordinate descent. 
+We obtained best results when the learning rate $\alpha$ was set to 0.01 for the first 1000 epochs, after which it was set to 0.001. The optimal value for the discount factor $\gamma$ was about 0.4; these were determined by coordinate descent. 
 
 A key challenge was determining how the many-dimensional, partially-observable game state could be discretized into a single, discrete state representation $s$. We therefore experimented with several ``basis functions'' for representing the state space. We built three different agents that utilized different basis function representations:
 
@@ -250,7 +242,7 @@ A key challenge was determining how the many-dimensional, partially-observable g
 	\item[GoodBadCapsuleDistanceAgent] --- $s = (g, b, c, h)$ where $g$ is the distance to the nearest good ghost, $b$ is the distance to the bad ghost, $c$ is the distance to the nearest non-placebo capsule, and $h$ is 1 if Pac-man has eaten a capsule (e.g. the bad ghost is currently scared). Each of the distances $g$, $b$, and $c$ were sorted into one of $n$ bins, where $n = 5$, such that the size of the state space was $n^3 * 2$. Unlike the other two agents, this agent attempts to learn \emph{which object to pursue} (the good ghost, the bad ghost, or the capsule). Once the learner has selected the object to pursue, the agent will move in whichever legal direction minimizes the distance to the target.  
 \end{description}
 
-In an attempt to improve the rate of convergence, recognizing in particular that Q-learning is much slower to propagate negative rewards than positive rewards, we implemented two learners that were ``seeded'' with initial values for the rewards for various actions:
+In an attempt to improve the rate of convergence, recognizing in particular that Q-learning is much slower to propagate negative rewards than positive rewards, we implemented two learners that were ``seeded'' with initial values, based on our knowledge about expected rewards for various actions (according to the game rules):
 
 \begin{description}
 	\item[SeededGoodBadCapsuleDistanceAgent] --- Same as GoodBadCapsuleDistanceAgent; however, chasing the bad ghost without the capsule was assigned $Q = -1200$, regardless of the distance.
@@ -278,7 +270,7 @@ Figs. \ref{fig:agents-finals} and \ref{fig:agents-trajectories} compare the perf
 
 As can be seen from Fig. \ref{fig:agents-finals}, the three hand-coded agents performed much better than the reinforcement-learning agents (although the seeded agents did better than the non-seeded reinforcement learning agents). We suspect that further tuning of the learning rate may have helped the reinforcement learning agents converge to an optimal strategy. Another problem was that our ghost-classification performance improved significantly very close to the deadline---before we were able to re-train our reinforcement agents. Therefore the reinforcement agents may have evolved strategies that were overly conservative due to spurious punishments when pursuing the bad ghost (that had been mis-classified as the good ghost).
 
-Examining Fig. \ref{fig:agents-trajectories} provides some insights into the failure modes of the poorly-performing agents. It can be seen that poorly-perfoming agents do not simply die of attrition, but repeatedly experience 1200-point losses (presumably due to bad ghost encounters). This seems to suggest that either: the bad ghost is being repeatedly mis-classified, the agents are pursuing the bad ghost (despite not having a capsule---presumably due to a failure to propagate negative reward), or the agent, in pursuit of another ghost or capsule, accidentally runs into the bad ghost.
+Examining Fig. \ref{fig:agents-trajectories} provides some insights into the failure modes of the poorly-performing agents. It can be seen that poorly-perfoming agents do not simply die of attrition, but repeatedly experience 1000-point losses (presumably due to bad ghost encounters). This seems to suggest that either: the bad ghost is being repeatedly mis-classified, the agents are pursuing the bad ghost (despite not having a capsule---presumably due to a failure to propagate negative reward), or the agent, in pursuit of another ghost or capsule, accidentally runs into the bad ghost.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{agents-finals.pdf}
@@ -296,6 +288,6 @@ Examining Fig. \ref{fig:agents-trajectories} provides some insights into the fai
 % =============================================================================
 \section{Conclusion}
 
-Ultimately, our most successful approaches were the hand-coded strategies. This is somewhat unsurprisingly, as those strategies were able to incorporate the information gleaned by the offline learning techniques, but pursued a nearly-optimal strategy based on knowledge of the game mechanics (something from which the reinforcement learning agents did not benefit). Improvements in the reinforcement learning agents' performance may have been achieved by tweaking the learning rate and the discretization parameters. Further improvements in the hand-coded strategies could be obtained by performing class-conditional regression on the ghosts' feature vectors in order to predict the ``juiciness'' of each ghost (and therefore make more considered and less-opportunistic decisions about which ghost/capsule to pursue). Similarly, probabilistic classification of the capsules could have been incorporated into decisionmaking. This type of decisionmaking may be better-suited to continuous formulations of reinforcement learning. These would be appropriate avenues for future study.
+Ultimately, our most successful approaches were the hand-coded strategies. This is somewhat unsurprisingly, as those strategies were able to incorporate the information gleaned by the offline learning techniques, but pursued a nearly-optimal strategy based on knowledge of the game mechanics (something from which the reinforcement learning agents did not benefit). Improvements in the reinforcement learning agents' performance may have been achieved by tweaking the learning rate and the discretization parameters. Further improvements in the hand-coded strategies could be obtained by performing class-conditional regression on the ghosts' feature vectors in order to predict the ``juiciness'' of each ghost (and therefore make more considered and less-opportunistic decisions about which ghost/capsule to pursue). Similarly, probabilistic classification of the capsules could have been incorporated into decision-making (for instance, the confidence in a classification or juiciness prediction could determine which of several options was pursued). This type of decision-making may be better-suited to continuous formulations of reinforcement learning. These would be appropriate avenues for future study.
 
 \end{document}
